@@ -7,10 +7,34 @@ import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
 import { PostgresModule } from './postgres/postgres.module';
 import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './guards/role.guard';
+import { ConfigModule } from '@nestjs/config';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
-  imports: [UserModule, ProductsModule, CartModule, OrderModule, PostgresModule, AuthModule],
+  imports: [
+    UserModule,
+    ProductsModule,
+    CartModule,
+    OrderModule,
+    PostgresModule,
+    AuthModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}
