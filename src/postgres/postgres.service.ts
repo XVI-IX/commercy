@@ -1,26 +1,49 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePostgreDto } from './dto/create-postgre.dto';
-import { UpdatePostgreDto } from './dto/update-postgre.dto';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Pool } from 'pg';
 
 @Injectable()
 export class PostgresService {
-  create(createPostgreDto: CreatePostgreDto) {
-    return 'This action adds a new postgre';
+  private readonly pool: Pool;
+
+  constructor(private config: ConfigService) {
+    this.pool = new Pool({
+      user: this.config.get<string>('DB_USERNAME'),
+      host: this.config.get<string>('DB_HOST'),
+      database: this.config.get<string>('DB_NAME'),
+      password: this.config.get<string>('DB_PASSWORD'),
+      port: this.config.get<string>('DB_HOST'),
+    });
   }
 
-  findAll() {
-    return `This action returns all postgres`;
+  async query(text: string, values: string[] = []): Promise<any> {
+    try {
+      const result = await this.pool.query(text, values);
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} postgre`;
-  }
+  async getUser(user_email: string): Promise<object> {
+    const user_query = `SELECT * FROM users WHERE email = $1`;
+    const user_values = [user_email];
+    try {
+      const rows = await this.pool.query(user_query, user_values);
 
-  update(id: number, updatePostgreDto: UpdatePostgreDto) {
-    return `This action updates a #${id} postgre`;
-  }
+      if (!rows.rows[0]) {
+        throw new NotFoundException('User not found.');
+      }
 
-  remove(id: number) {
-    return `This action removes a #${id} postgre`;
+      return rows.rows[0];
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

@@ -1,0 +1,22 @@
+-- create user table
+CREATE TABLE IF NOT EXISTS users (
+  user_id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  avatar VARCHAR(255),
+  billing_address VARCHAR(255),
+  shipping_address VARCHAR(255),
+  phone_number VARCHAR(15),
+  date_of_birth DATE,
+  order_history JSONB[],
+  wishlist JSONB[],
+  cart_items JSONB[],
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_login_at TIMESTAMP,
+  modified_at TIMESTAMP,
+  verified BOOLEAN,
+  user_role VARCHAR(20),
+  email VARCHAR(50) UNIQUE NOT NULL,
+  passwordHash VARCHAR(255) NOT NULL UNIQUE,
+);

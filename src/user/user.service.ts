@@ -4,6 +4,20 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
+  constructor() {}
+
+  /**
+   * Gets user information relating to provided email
+   *
+   * @param email Email of user to be retrieved.
+   */
+  private async getUserByEmail(email: string) {
+    try {
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
