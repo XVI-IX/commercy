@@ -18,5 +18,22 @@ CREATE TABLE IF NOT EXISTS users (
   verified BOOLEAN,
   user_role VARCHAR(20),
   email VARCHAR(50) UNIQUE NOT NULL,
-  passwordHash VARCHAR(255) NOT NULL UNIQUE,
+  passwordHash VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS products ( 
+  product_id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(user_id),
+  product_name VARCHAR(255),
+  prouct_description TEXT,
+  price FLOAT NOT NULL DEFAULT 0,
+  category VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  order_id SERIAL PRIMARY KEY,
+  product_id INTEGER REFERENCES products(product_id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  user_id INTEGER REFERENCES users(user_id),
+  quantity INTEGER
 );
