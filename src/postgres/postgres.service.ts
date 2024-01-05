@@ -16,7 +16,7 @@ export class PostgresService {
       host: this.config.get<string>('DB_HOST'),
       database: this.config.get<string>('DB_NAME'),
       password: this.config.get<string>('DB_PASSWORD'),
-      port: this.config.get<string>('DB_HOST'),
+      port: this.config.get<string>('DB_PORT'),
     });
   }
 
@@ -30,7 +30,7 @@ export class PostgresService {
     }
   }
 
-  async getUser(user_email: string): Promise<object> {
+  async getUser(user_email: string): Promise<any> {
     const user_query = `SELECT * FROM users WHERE email = $1`;
     const user_values = [user_email];
     try {

@@ -11,6 +11,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './guards/role.guard';
 import { ConfigModule } from '@nestjs/config';
 import { AuthGuard } from './guards/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { AuthGuard } from './guards/auth.guard';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    JwtModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

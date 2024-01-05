@@ -29,25 +29,26 @@ model products {
 }
 
 model users {
-  user_id          Int        @id @default(autoincrement())
-  username         String?    @unique @db.VarChar(50)
-  first_name       String     @db.VarChar(50)
-  last_name        String     @db.VarChar(50)
-  avatar           String?    @db.VarChar(255)
-  billing_address  String?    @db.VarChar(255)
-  shipping_address String?    @db.VarChar(255)
-  phone_number     String?    @db.VarChar(15)
-  date_of_birth    DateTime?  @db.Date
-  order_history    Json[]
-  wishlist         Json[]
-  cart_items       Json[]
-  created_at       DateTime?  @default(now()) @db.Timestamp(6)
-  last_login_at    DateTime?  @db.Timestamp(6)
-  modified_at      DateTime?  @db.Timestamp(6)
-  verified         Boolean?
-  user_role        String?    @db.VarChar(20)
-  email            String     @unique @db.VarChar(50)
-  passwordhash     String     @unique @db.VarChar(255)
+  user_id           Int        @id @default(autoincrement())
+  username          String?    @unique @db.VarChar(50)
+  first_name        String     @db.VarChar(50)
+  last_name         String     @db.VarChar(50)
+  avatar            String?    @db.VarChar(255)
+  billing_address   String?    @db.VarChar(255)
+  shipping_address  String?    @db.VarChar(255)
+  phone_number      String?    @db.VarChar(15)
+  date_of_birth     DateTime?  @db.Date
+  order_history     Json[]
+  wishlist          Json[]
+  cart_items        Json[]
+  created_at        DateTime?  @default(now()) @db.Timestamp(6)
+  last_login_at     DateTime?  @db.Timestamp(6)
+  modified_at       DateTime?  @db.Timestamp(6)
+  verified          Boolean?
+  verificationToken String
+  user_role         String?    @db.VarChar(20) @default("User")
+  email             String     @unique @db.VarChar(50)
+  passwordhash      String     @unique @db.VarChar(255)
   orders           orders[]
   products         products[]
 }

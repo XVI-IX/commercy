@@ -5,29 +5,70 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from 'src/user/user.service';
+import { nanoid } from 'nanoid';
+import * as argon from 'argon2';
+import { PostgresService } from 'src/postgres/postgres.service';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private config: ConfigService,
-    private readonly userService: UserService,
+    private pg: PostgresService,
   ) {}
 
-  async signIn(email, password) {
+  async register(dto: CreateUserDto) {
     try {
-      const user = await this.userService.findByEmail(email);
+      const verificationToken = nanoid(6);
+      const passwordhash = await argon.hash(dto.password);
+      const query =
+        'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, order_history, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
+      const values = [
+        dto.username,
+        dto.first_name,
+        dto.last_name,
+        dto.avatar,
+        dto.billing_address,
+        dto.shipping_address,
+        dto.phone_number,
+        dto.date_of_birth,
+        dto.user_role,
+        dto.email,
+        passwordhash,
+        verificationToken,
+      ];
 
-      if (user?.password !== password) {
+      const result = this.pg.query(query, values);
+      if (!result) {
+        throw new InternalServerErrorException('User could not be registered.');
+      }
+
+      return {
+        message: 'User Registered. Check email for verification Token',
+        status: 'success',
+        statusCode: 201,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'User could not be registered. Try again.',
+      );
+    }
+  }
+  async signIn(email: string, password: string) {
+    try {
+      const user = await this.pg.getUser(email);
+
+      if (user?.passwordhash !== password) {
         throw new UnauthorizedException('Invalid password');
       }
 
       const payload = {
-        sub: user.id,
+        sub: user.user_id,
         username: user.username,
         email: user.email,
-        role: user.role,
+        role: user.user_role,
       };
 
       const token = await this.jwtService.signAsync(payload, {
