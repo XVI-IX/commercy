@@ -9,6 +9,7 @@ import { v4 } from 'uuid';
 import * as argon from 'argon2';
 import { PostgresService } from 'src/postgres/postgres.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private pg: PostgresService,
+    private eventEmmiter: EventEmitter2,
   ) {}
 
   async register(dto: CreateUserDto) {
@@ -43,6 +45,8 @@ export class AuthService {
       if (!result) {
         throw new InternalServerErrorException('User could not be registered.');
       }
+
+      this.eventEmmiter.emit("verify-user", {});
 
       return {
         message: 'User Registered. Check email for verification Token',
