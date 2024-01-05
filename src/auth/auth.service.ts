@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { nanoid } from 'nanoid';
+import { v4 } from 'uuid';
 import * as argon from 'argon2';
 import { PostgresService } from 'src/postgres/postgres.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
@@ -20,7 +20,7 @@ export class AuthService {
 
   async register(dto: CreateUserDto) {
     try {
-      const verificationToken = nanoid(6);
+      const verificationToken = v4(6);
       const passwordhash = await argon.hash(dto.password);
       const query =
         'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, order_history, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
