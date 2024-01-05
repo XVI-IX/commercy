@@ -5,12 +5,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { v4 } from 'uuid';
 import * as argon from 'argon2';
 import { PostgresService } from 'src/postgres/postgres.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-
+import { randomBytes } from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,33 +19,41 @@ export class AuthService {
     private eventEmmiter: EventEmitter2,
   ) {}
 
+  private randomString() {
+    return randomBytes(6).toString('hex');
+  }
+
   async register(dto: CreateUserDto) {
     try {
-      const verificationToken = v4(6);
-      const passwordhash = await argon.hash(dto.password);
-      const query =
-        'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, order_history, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
-      const values = [
-        dto.username,
-        dto.first_name,
-        dto.last_name,
-        dto.avatar,
-        dto.billing_address,
-        dto.shipping_address,
-        dto.phone_number,
-        dto.date_of_birth,
-        dto.user_role,
-        dto.email,
-        passwordhash,
-        verificationToken,
-      ];
+      const verificationToken = this.randomString();
+      // const passwordhash = await argon.hash(dto.password);
+      // const query =
+      //   'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, order_history, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
+      // const values = [
+      //   dto.username,
+      //   dto.first_name,
+      //   dto.last_name,
+      //   dto.avatar,
+      //   dto.billing_address,
+      //   dto.shipping_address,
+      //   dto.phone_number,
+      //   dto.date_of_birth,
+      //   dto.user_role,
+      //   dto.email,
+      //   passwordhash,
+      //   verificationToken,
+      // ];
 
-      const result = this.pg.query(query, values);
-      if (!result) {
-        throw new InternalServerErrorException('User could not be registered.');
-      }
-
-      this.eventEmmiter.emit("verify-user", {});
+      // const result = this.pg.query(query, values);
+      // if (!result) {
+      //   throw new InternalServerErrorException('User could not be registered.');
+      // }
+      const data = {
+        to: dto.email,
+        username: dto.username,
+        token: verificationToken,
+      };
+      this.eventEmmiter.emit('verify-user', data);
 
       return {
         message: 'User Registered. Check email for verification Token',

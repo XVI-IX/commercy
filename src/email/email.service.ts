@@ -12,7 +12,20 @@ export class EmailService {
 
   async sendVerificationEmail(data: any) {
     try {
-    } catch (error) {}
+      const subject = `${data.username}, Please verify your account.`;
+
+      await this.mailService.sendMail({
+        to: data.to,
+        subject,
+        template: './verify-email',
+        context: {
+          name: data.username,
+          token: data.token,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async sendWelcomeEmail(data: any) {

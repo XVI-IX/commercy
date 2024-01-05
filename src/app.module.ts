@@ -25,6 +25,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: "../.env",
     }),
     JwtModule,
     EmailModule,
