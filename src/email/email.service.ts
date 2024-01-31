@@ -38,6 +38,23 @@ export class EmailService {
     } catch (error) {}
   }
 
+  async sendForgotPassEmail(data: any) {
+    try {
+      await this.mailService.sendMail({
+        to: data.to,
+        subject: `Reset Token`,
+        template: 'forgot-password',
+        context: {
+          username: data.username,
+          token: data.token,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   @OnEvent('verify-user')
   handleUserVerification(data: any) {
     this.sendVerificationEmail(data);
@@ -51,5 +68,10 @@ export class EmailService {
   @OnEvent('logged-in')
   handleUserLogin(data: any) {
     this.sendLoggedInEmail(data);
+  }
+
+  @OnEvent('forgot-password')
+  handleForgotPassword(data: any) {
+    this.sendForgotPassEmail(data);
   }
 }

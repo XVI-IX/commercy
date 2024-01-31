@@ -27,7 +27,7 @@ export class PostgresService {
       return result;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error.message);
+      throw error;
     }
   }
 
@@ -44,7 +44,7 @@ export class PostgresService {
       return rows.rows[0];
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error.message);
+      throw error;
     }
   }
 }
