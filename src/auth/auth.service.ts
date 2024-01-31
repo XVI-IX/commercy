@@ -161,8 +161,17 @@ export class AuthService {
       result = await this.pg.query(query, [undefined, dto.email]);
 
       if (!result) {
-        throw new InternalServerErrorException("Verificatio Token could not be reset");
+        throw new InternalServerErrorException(
+          'Verification Token could not be reset',
+        );
       }
+
+      const data = {
+        to: dto.email,
+        username: user.username,
+      };
+
+      this.eventEmmiter.emit('reset-password', data);
 
       return {
         message: 'Password reset successfully',

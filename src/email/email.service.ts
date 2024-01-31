@@ -30,13 +30,24 @@ export class EmailService {
 
   async sendWelcomeEmail(data: any) {
     try {
-    } catch (error) {}
+      await this.mailService.sendMail({
+        to: data.to,
+        subject: `Welcome ${data.username}!`,
+        template: 'welcome-email',
+        context: {
+          username: data.username,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  async sendLoggedInEmail(data: any) {
-    try {
-    } catch (error) {}
-  }
+  // TODO: Create email to send when log in event occurs
+  // async sendLoggedInEmail(data: any) {
+  //   try {
+  //   } catch (error) {}
+  // }
 
   async sendForgotPassEmail(data: any) {
     try {
@@ -55,6 +66,22 @@ export class EmailService {
     }
   }
 
+  async resetPasswordEmail(data: any) {
+    try {
+      await this.mailService.sendMail({
+        to: data.to,
+        subject: `${data.username}, your password has been reset.`,
+        template: 'reset-password',
+        context: {
+          username: data.username,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   @OnEvent('verify-user')
   handleUserVerification(data: any) {
     this.sendVerificationEmail(data);
@@ -65,13 +92,18 @@ export class EmailService {
     this.sendWelcomeEmail(data);
   }
 
-  @OnEvent('logged-in')
-  handleUserLogin(data: any) {
-    this.sendLoggedInEmail(data);
-  }
+  // @OnEvent('logged-in')
+  // handleUserLogin(data: any) {
+  //   this.sendLoggedInEmail(data);
+  // }
 
   @OnEvent('forgot-password')
   handleForgotPassword(data: any) {
     this.sendForgotPassEmail(data);
+  }
+
+  @OnEvent('reset-password')
+  handleResetPassword(data: any) {
+    this.resetPasswordEmail(data);
   }
 }
