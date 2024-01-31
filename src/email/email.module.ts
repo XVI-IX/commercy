@@ -10,12 +10,12 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
   imports: [
     MailerModule.forRoot({
       transport: {
-        host: process.env.MAIL_HOST,
+        host: process.env.MAIL_HOST || 'smtp.gmail.com',
         port: 587,
         secure: false,
         auth: {
-          user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASS,
+          user: process.env.MAIL_USER || 'oladoja14@gmail.com',
+          pass: process.env.MAIL_PASS || 'wbciyjaxrdcdbtco',
         },
       },
       defaults: {

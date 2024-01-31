@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +11,7 @@ import { PostgresService } from 'src/postgres/postgres.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomBytes } from 'crypto';
+import { LoginDto } from './dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,39 +22,42 @@ export class AuthService {
   ) {}
 
   private randomString() {
-    return randomBytes(6).toString('hex');
+    return randomBytes(3).toString('hex');
   }
 
   async register(dto: CreateUserDto) {
     try {
       const verificationToken = this.randomString();
-      // const passwordhash = await argon.hash(dto.password);
-      // const query =
-      //   'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, order_history, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)';
-      // const values = [
-      //   dto.username,
-      //   dto.first_name,
-      //   dto.last_name,
-      //   dto.avatar,
-      //   dto.billing_address,
-      //   dto.shipping_address,
-      //   dto.phone_number,
-      //   dto.date_of_birth,
-      //   dto.user_role,
-      //   dto.email,
-      //   passwordhash,
-      //   verificationToken,
-      // ];
+      const passwordhash = await argon.hash(dto.password);
+      const query =
+        'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
+      const values = [
+        dto.username,
+        dto.first_name,
+        dto.last_name,
+        dto.avatar,
+        dto.billing_address,
+        dto.shipping_address,
+        dto.phone_number,
+        dto.date_of_birth,
+        dto.user_role,
+        dto.email,
+        passwordhash,
+        verificationToken,
+      ];
 
-      // const result = this.pg.query(query, values);
-      // if (!result) {
-      //   throw new InternalServerErrorException('User could not be registered.');
-      // }
+      const result = await this.pg.query(query, values);
+
+      if (!result) {
+        throw new InternalServerErrorException('User could not be registered.');
+      }
+
       const data = {
         to: dto.email,
         username: dto.username,
         token: verificationToken,
       };
+
       this.eventEmmiter.emit('verify-user', data);
 
       return {
@@ -62,16 +67,20 @@ export class AuthService {
       };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(
-        'User could not be registered. Try again.',
-      );
+      throw error;
     }
   }
-  async signIn(email: string, password: string) {
+  async signIn(dto: LoginDto) {
     try {
-      const user = await this.pg.getUser(email);
+      const user = await this.pg.getUser(dto.email);
 
-      if (user?.passwordhash !== password) {
+      if (!user) {
+        throw new NotFoundException('User with email not found');
+      }
+
+      const match = await argon.verify(user?.passwordhash, dto.password);
+
+      if (!match) {
         throw new UnauthorizedException('Invalid password');
       }
 
@@ -89,9 +98,10 @@ export class AuthService {
       return {
         access_token: token,
       };
+
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Could not sign in.');
+      throw error;
     }
   }
 }

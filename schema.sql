@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
   user_role VARCHAR(20),
   email VARCHAR(50) UNIQUE NOT NULL,
   passwordHash VARCHAR(255) NOT NULL UNIQUE
+  verificationToken VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS products ( 

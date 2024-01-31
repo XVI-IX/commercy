@@ -17,7 +17,7 @@ export class EmailService {
       await this.mailService.sendMail({
         to: data.to,
         subject,
-        template: './verify-email',
+        template: 'verify-email',
         context: {
           name: data.username,
           token: data.token,

@@ -11,13 +11,14 @@ export class PostgresService {
   private readonly pool: Pool;
 
   constructor(private config: ConfigService) {
-    this.pool = new Pool({
-      user: this.config.get<string>('DB_USERNAME'),
-      host: this.config.get<string>('DB_HOST'),
-      database: this.config.get<string>('DB_NAME'),
-      password: this.config.get<string>('DB_PASSWORD'),
-      port: this.config.get<string>('DB_PORT'),
-    });
+    try {
+      this.pool = new Pool({
+        connectionString: this.config.get('DATABASE_URL'),
+      });
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('Postgres connection failed');
+    }
   }
 
   async query(text: string, values: string[] = []): Promise<any> {
