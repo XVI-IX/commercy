@@ -35,11 +35,11 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: AuthGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useClass: RolesGuard,
     },
   ],
 })

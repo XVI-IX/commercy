@@ -42,7 +42,7 @@ export class AuthGuard implements CanActivate {
       request['user'] = payload;
     } catch (error) {
       console.error(error);
-      throw new UnauthorizedException('Sign in failed, please try again');
+      throw error;
     }
 
     return true;

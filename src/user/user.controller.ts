@@ -1,28 +1,39 @@
-import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Param,
+  Delete,
+  HttpCode,
+  Put,
+} from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UserUpdateDto } from './dto/update-user.dto';
+import { User, Roles } from '../decorator';
+import { Role } from '../enums';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Get('/profile')
+  @Roles(Role.Admin, Role.User)
+  @HttpCode(200)
+  getProfile(@User() user: any) {
+    return this.userService.getProfile(user.email);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Put('/:userId')
+  @Roles(Role.Admin, Role.User)
+  @HttpCode(200)
+  updateProfile(@Param('userId') id: string, @Body() dto: UserUpdateDto) {
+    return this.userService.updateProfile(id, dto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Delete('/:userId')
+  @Roles(Role.Admin, Role.User)
+  @HttpCode(200)
+  deleteProfile(@Param('userId') id: string) {
+    return this.userService.deleteUser(id);
   }
 }

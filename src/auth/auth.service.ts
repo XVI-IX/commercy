@@ -90,7 +90,7 @@ export class AuthService {
         sub: user.user_id,
         username: user.username,
         email: user.email,
-        role: user.user_role,
+        roles: [user.user_role.toLowerCase()],
       };
 
       const token = await this.jwtService.signAsync(payload, {
@@ -157,7 +157,7 @@ export class AuthService {
         throw new InternalServerErrorException('Password could not be reset');
       }
 
-      query = 'UPDATE users SET verificationtoken = $1 WHERE email = $2';
+      query = 'UPDATE users SET verificationToken = $1 WHERE email = $2';
       result = await this.pg.query(query, [undefined, dto.email]);
 
       if (!result) {
