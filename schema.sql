@@ -15,12 +15,16 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_login_at TIMESTAMP,
   modified_at TIMESTAMP,
-  verified BOOLEAN,
+  verified BOOLEAN DEFAULT FALSE,
   user_role VARCHAR(20),
   email VARCHAR(50) UNIQUE NOT NULL,
   passwordHash VARCHAR(255) NOT NULL UNIQUE,
   verificationToken VARCHAR(255)
 );
+
+CREATE INDEX idx_verificationtoken ON users (verificationtoken);
+CREATE INDEX idx_email ON users (email);
+
 
 CREATE TABLE IF NOT EXISTS products ( 
   product_id SERIAL PRIMARY KEY,

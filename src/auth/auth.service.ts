@@ -80,6 +80,30 @@ export class AuthService {
         throw new NotFoundException('User with email not found');
       }
 
+      if (!user.verified) {
+        const verificationToken = this.randomString();
+
+        const query =
+          'UPDATE users SET verificationToken = $1 WHERE user_id = $2 RETURNING *';
+        const values = [verificationToken, user.user_id];
+
+        const update = await this.pg.query(query, values);
+
+        const data = {
+          to: update.rows[0].email,
+          username: update.rows[0].username,
+          token: update.rows[0].verificationToken,
+        };
+
+        this.eventEmmiter.emit('verify-user', data);
+
+        return {
+          message: 'Token has been sent to your email',
+          status: 'success',
+          statusCode: 200,
+        };
+      }
+
       const match = await argon.verify(user?.passwordhash, dto.password);
 
       if (!match) {
@@ -99,6 +123,40 @@ export class AuthService {
 
       return {
         access_token: token,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async verifyAccount(token: string) {
+    try {
+      const query =
+        'SELECT * FROM users WHERE verificationtoken = CAST($1 AS VARCHAR(255));';
+      const result = await this.pg.query(query, [token]);
+
+      console.log(result.rows);
+
+      if (result.rows.length === 0) {
+        throw new NotFoundException('User with token not found');
+      }
+
+      const updateQuery =
+        'UPDATE users SET verified = $1 WHERE user_id = $2 RETURNING *';
+      const verifyUser = await this.pg.query(updateQuery, [
+        true,
+        result.rows[0].user_id,
+      ]);
+
+      if (!verifyUser.rows[0].verified) {
+        throw new InternalServerErrorException('User could not be verified');
+      }
+
+      return {
+        message: 'Account verified',
+        status: 'success',
+        statusCode: 200,
       };
     } catch (error) {
       console.error(error);

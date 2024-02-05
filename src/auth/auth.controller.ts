@@ -31,6 +31,13 @@ export class AuthController {
 
   @Public()
   @HttpCode(200)
+  @Post('/verify-account')
+  async verifyAccount(@Body('token') token: string) {
+    return this.authService.verifyAccount(token);
+  }
+
+  @Public()
+  @HttpCode(200)
   @Post('/reset-password')
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
