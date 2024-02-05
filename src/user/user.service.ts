@@ -93,13 +93,13 @@ export class UserService {
         message: 'User role updated.',
         status: 'success',
         statusCode: 200,
-        // data: {
-        //   email: user.rows[0].email,
-        //   username: user.rows[0].username,
-        //   role: user.rows[0].user_role,
-        //   first_name: user.rows[0].first_name,
-        //   last_name: user.rows[0].last_name,
-        // },
+        data: {
+          email: user.rows[0].email,
+          username: user.rows[0].username,
+          role: user.rows[0].user_role,
+          first_name: user.rows[0].first_name,
+          last_name: user.rows[0].last_name,
+        },
       };
     } catch (error) {
       console.error(error);

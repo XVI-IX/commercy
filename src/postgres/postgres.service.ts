@@ -21,7 +21,7 @@ export class PostgresService {
     }
   }
 
-  async query(text: string, values: string[] = []): Promise<any> {
+  async query(text: string, values: any[] = []): Promise<any> {
     try {
       const result = await this.pool.query(text, values);
       return result;

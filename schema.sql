@@ -30,9 +30,11 @@ CREATE TABLE IF NOT EXISTS products (
   product_id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(user_id),
   product_name VARCHAR(255),
-  prouct_description TEXT,
+  product_img VARCHAR(255),
+  product_description TEXT,
   price FLOAT NOT NULL DEFAULT 0,
-  category VARCHAR(50) NOT NULL
+  category VARCHAR(50) NOT NULL,
+  quantity INTEGER NOT NULL 0,
 );
 
 CREATE TABLE IF NOT EXISTS orders (
