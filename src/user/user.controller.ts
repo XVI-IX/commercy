@@ -11,6 +11,7 @@ import { UserService } from './user.service';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { User, Roles } from '../decorator';
 import { Role } from '../enums';
+import { UpdateRoleDto } from './dto';
 
 @Controller('user')
 export class UserController {
@@ -28,6 +29,13 @@ export class UserController {
   @HttpCode(200)
   updateProfile(@Param('userId') id: string, @Body() dto: UserUpdateDto) {
     return this.userService.updateProfile(id, dto);
+  }
+
+  @Put('/changeRole/:userId')
+  @Roles(Role.Admin)
+  @HttpCode(200)
+  updateRole(@Param('userId') id: string, @Body() dto: UpdateRoleDto) {
+    return this.userService.changeRole(id, dto);
   }
 
   @Delete('/:userId')

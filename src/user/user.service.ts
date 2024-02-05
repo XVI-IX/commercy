@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { UserUpdateDto } from './dto';
+import { UserUpdateDto, UpdateRoleDto } from './dto';
 import { PostgresService } from 'src/postgres/postgres.service';
 
 @Injectable()
@@ -67,6 +67,39 @@ export class UserService {
           last_name: user.rows[0].last_name,
           email: user.rows[0].email,
         },
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async changeRole(user_id: string, dto: UpdateRoleDto) {
+    try {
+      const query =
+        'UPDATE users SET user_role = $1 WHERE user_id = $2 RETURNING *';
+      const values = [dto.role, user_id];
+      const user = await this.pg.query(query, values);
+
+      if (!user) {
+        throw new InternalServerErrorException(
+          'User role could not be updated.',
+        );
+      }
+
+      console.log(user.rows);
+
+      return {
+        message: 'User role updated.',
+        status: 'success',
+        statusCode: 200,
+        // data: {
+        //   email: user.rows[0].email,
+        //   username: user.rows[0].username,
+        //   role: user.rows[0].user_role,
+        //   first_name: user.rows[0].first_name,
+        //   last_name: user.rows[0].last_name,
+        // },
       };
     } catch (error) {
       console.error(error);
