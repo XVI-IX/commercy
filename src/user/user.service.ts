@@ -50,7 +50,7 @@ export class UserService {
       ];
 
       const user = await this.pg.query(query, values);
-      // const data = user.rows[0]
+      console.log(user.rows);
       if (!user) {
         throw new InternalServerErrorException(
           'User data could not be updated',
@@ -61,6 +61,12 @@ export class UserService {
         message: 'User data updated successfully',
         status: 'success',
         statusCode: 200,
+        data: {
+          username: user.rows[0].username,
+          first_name: user.rows[0].first_name,
+          last_name: user.rows[0].last_name,
+          email: user.rows[0].email,
+        },
       };
     } catch (error) {
       console.error(error);
