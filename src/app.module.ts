@@ -14,6 +14,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { EmailModule } from './email/email.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     JwtModule,
     EmailModule,
     EventEmitterModule.forRoot(),
+    WishlistModule,
   ],
   controllers: [AppController],
   providers: [

@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateProductDto, UpdateProductDto } from './dto';
+import { CreateProductDto, UpdateProductDto, ReviewDto } from './dto';
 import { PostgresService } from 'src/postgres/postgres.service';
 
 @Injectable()
@@ -160,15 +160,28 @@ export class ProductsService {
     }
   }
 
-  async addRating() {
+  async deleteProduct(product_id: string) {
     try {
+      const query = 'DELETE FROM products WHERE product_id = $1';
+      const result = await this.pg.query(query, [product_id]);
+
+      if (!result) {
+        throw new InternalServerErrorException('Product could not be deleted.');
+      }
+
+      return {
+        message: 'Products deleted successfully',
+        status: 'success',
+        statusCode: 200,
+        data: null,
+      };
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async addReview() {
+  async addReview(dto: ReviewDto) {
     try {
     } catch (error) {
       console.error(error);
