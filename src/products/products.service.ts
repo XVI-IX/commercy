@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateProductDto, UpdateProductDto } from './dto';}
+import { CreateProductDto, UpdateProductDto } from './dto';
 import { PostgresService } from 'src/postgres/postgres.service';
 
 @Injectable()
@@ -41,9 +41,26 @@ export class ProductsService {
     }
   }
 
-  async getAllProducts() {
+  async getAllProducts(queryBody: any) {
+    const { category, min_price, max_price, page = 1, limit = 10 } = queryBody;
+
+    let query = 'SELECT * FROM products LIMIT $1 OFFSET $2';
+    const values = [limit, (page - 1) * limit];
+
+    if (category) {
+      query += ' WHERE category = $3';
+      values.push(category);
+    }
+    if (min_price) {
+      query += ' AND price >= $4';
+      values.push(min_price);
+    }
+    if (max_price) {
+      query += ' AND price <= $5';
+      values.push(max_price);
+    }
     try {
-      const products = await this.pg.query('SELECT * FROM products');
+      const products = await this.pg.query(query, values);
 
       if (products.rows.length === 0) {
         throw new NotFoundException('No products found.');
@@ -54,6 +71,7 @@ export class ProductsService {
         status: 'success',
         statusCode: 200,
         data: products.rows[0],
+        page,
       };
     } catch (error) {
       console.error(error);
