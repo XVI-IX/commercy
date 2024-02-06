@@ -18,14 +18,17 @@ model orders {
 }
 
 model products {
-  product_id         Int      @id @default(autoincrement())
-  user_id            Int?
-  product_name       String?  @db.VarChar(255)
-  prouct_description String?
-  price              Float    @default(0)
-  category           String   @db.VarChar(50)
-  orders             orders[]
-  users              users?   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  product_id          Int       @id @default(autoincrement())
+  user_id             Int?
+  product_name        String?   @db.VarChar(255)
+  product_description String?
+  price               Float     @default(0)
+  category            String    @db.VarChar(50)
+  quantity            Int       @default(0)
+  product_img         String?   @db.VarChar(255)
+  orders              orders[]
+  users               users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  reviews             reviews[]
 }
 
 model users {
@@ -44,11 +47,25 @@ model users {
   created_at        DateTime?  @default(now()) @db.Timestamp(6)
   last_login_at     DateTime?  @db.Timestamp(6)
   modified_at       DateTime?  @db.Timestamp(6)
-  verified          Boolean?
-  verificationToken String
-  user_role         String?    @db.VarChar(20) @default("User")
+  verified          Boolean?   @default(false)
+  user_role         String?    @db.VarChar(20)
   email             String     @unique @db.VarChar(50)
   passwordhash      String     @unique @db.VarChar(255)
-  orders           orders[]
-  products         products[]
+  verificationtoken String?    @db.VarChar(255)
+  orders            orders[]
+  products          products[]
+  reviews           reviews[]
+
+  @@index([verificationtoken], map: "idx_verificationtoken")
+}
+
+model reviews {
+  review_id  Int       @id @default(autoincrement())
+  users      users?    @relation(fields: [user_id], references: [user_id])
+  user_id    Int
+  username   String
+  content    String
+  rating     Int
+  products   products? @relation(fields: [product_id], references: [product_id])
+  product_id Int?
 }

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, HttpCode, Param, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  HttpCode,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { User } from 'src/decorator';
@@ -21,19 +30,22 @@ export class ProductsController {
 
   @Get('/search')
   @HttpCode(200)
-  searchProduct(@Param('q') query: string) {
+  searchProduct(@Param() query: any) {
     return this.productsService.searchProducts(query);
   }
 
   @Put('/:productId')
   @HttpCode(200)
-  updateProduct(@Param('productId') productId: string, @Body() dto: UpdateProductDto) {
+  updateProduct(
+    @Param('productId') productId: string,
+    @Body() dto: UpdateProductDto,
+  ) {
     return this.productsService.updateProduct(productId, dto);
   }
 
   @Delete('/:productId')
   @HttpCode(200)
   deleteProduct(@Param('productId') productId: string) {
-    return this.productsService.deleteProduct(productId)
+    return this.productsService.deleteProduct(productId);
   }
 }

@@ -100,6 +100,31 @@ export class ProductsService {
     }
   }
 
+  async searchProducts(query: any) {
+    const { search, page = 1, limit = 10 } = query;
+    try {
+      let query =
+        "SELECT * FROM products WHERE product_name LIKE '%$1%' LIMIT $2 OFFSET $3";
+      const values = [search, limit, (page - 1) * limit];
+
+      const result = await this.pg.query(query, values);
+      if (result.rows[0].length === 0) {
+        throw new NotFoundException('No products found.');
+      }
+
+      return {
+        message: 'Product retrieved',
+        status: 'success',
+        statusCode: 200,
+        data: result.rows[0],
+        page,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async updateProduct(product_id: any, dto: UpdateProductDto) {
     try {
       const query = 'UPDATE products SET WHERE product_id = $1 RETURNING *';
@@ -129,6 +154,38 @@ export class ProductsService {
           quantity: product.rows[0].quantity,
         },
       };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async addRating() {
+    try {
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async addReview() {
+    try {
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getReviews() {
+    try {
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getRating() {
+    try {
     } catch (error) {
       console.error(error);
       throw error;
