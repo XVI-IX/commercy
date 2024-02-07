@@ -104,11 +104,12 @@ export class ProductsService {
     const { search, page = 1, limit = 10 } = query;
     try {
       let query =
-        "SELECT * FROM products WHERE product_name LIKE '%$1%' LIMIT $2 OFFSET $3";
+        "SELECT * FROM products WHERE product_name LIKE $1 LIMIT $2 OFFSET $3";
       const values = [search, limit, (page - 1) * limit];
 
       const result = await this.pg.query(query, values);
-      if (result.rows[0].length === 0) {
+      console.log(result);
+      if (result.rows.length === 0) {
         throw new NotFoundException('No products found.');
       }
 
