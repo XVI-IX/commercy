@@ -9,7 +9,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { CreateProductDto, UpdateProductDto } from './dto';
+import { CreateProductDto, ReviewDto, UpdateProductDto } from './dto';
 import { User } from 'src/decorator';
 
 @Controller('products')
@@ -41,6 +41,16 @@ export class ProductsController {
     @Body() dto: UpdateProductDto,
   ) {
     return this.productsService.updateProduct(productId, dto);
+  }
+
+  @Post('/:productId/reviews')
+  @HttpCode(200)
+  addReview(
+    @Param('productId') productId,
+    @Body() dto: ReviewDto,
+    @User() user: any,
+  ) {
+    return this.productsService.addReview(user, productId, dto);
   }
 
   @Delete('/:productId')

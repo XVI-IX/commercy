@@ -104,7 +104,7 @@ export class ProductsService {
     const { search, page = 1, limit = 10 } = query;
     try {
       let query =
-        "SELECT * FROM products WHERE product_name LIKE $1 LIMIT $2 OFFSET $3";
+        'SELECT * FROM products WHERE product_name LIKE $1 LIMIT $2 OFFSET $3';
       const values = [search, limit, (page - 1) * limit];
 
       const result = await this.pg.query(query, values);
@@ -182,8 +182,29 @@ export class ProductsService {
     }
   }
 
-  async addReview(dto: ReviewDto) {
+  async addReview(user: any, product_id: string, dto: ReviewDto) {
     try {
+      const query =
+        'INSERT INTO reviews (user_id, username, content, rating, product_id) VALUES ($1, $2, $3, $4, $5)';
+      const values = [
+        user.sub,
+        user.username,
+        dto.content,
+        dto.rating,
+        product_id,
+      ];
+
+      const result = await this.pg.query(query, values);
+      if (!result) {
+        throw new InternalServerErrorException('Review could not be added.');
+      }
+
+      return {
+        message: 'Review added successfully',
+        status: 'success',
+        statusCode: 200,
+        data: {},
+      };
     } catch (error) {
       console.error(error);
       throw error;
