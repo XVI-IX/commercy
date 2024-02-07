@@ -211,8 +211,23 @@ export class ProductsService {
     }
   }
 
-  async getReviews() {
+  async getReviews(product_id: string) {
     try {
+      const result = await this.pg.query(
+        'SELECT * FROM reviews WHERE product_id = $1',
+        [product_id],
+      );
+
+      if (result.rows.length === 0) {
+        throw new NotFoundException('No reviews found for this product.');
+      }
+
+      return {
+        message: 'Reviews retrieved successfully',
+        status: 'success',
+        statusCode: 200,
+        data: result.rows[0],
+      };
     } catch (error) {
       console.error(error);
       throw error;

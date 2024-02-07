@@ -53,6 +53,12 @@ export class ProductsController {
     return this.productsService.addReview(user, productId, dto);
   }
 
+  @Get('/:productId/reviews')
+  @HttpCode(200)
+  getReviews(@Param('productId') productId: string) {
+    return this.productsService.getReviews(productId);
+  }
+
   @Delete('/:productId')
   @HttpCode(200)
   deleteProduct(@Param('productId') productId: string) {
