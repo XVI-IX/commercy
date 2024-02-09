@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum productStatus {
+  available
+  outofstock
+}
+
 model orders {
   order_id   Int       @id @default(autoincrement())
   product_id Int?
@@ -26,6 +31,7 @@ model products {
   category            String    @db.VarChar(50)
   quantity            Int       @default(0)
   product_img         String?   @db.VarChar(255)
+  status              productStatus    @default(available)
   orders              orders[]
   users               users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
   reviews             reviews[]

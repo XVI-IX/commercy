@@ -7,6 +7,7 @@ import {
   Param,
   Put,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto, ReviewDto, UpdateProductDto } from './dto';
@@ -24,13 +25,20 @@ export class ProductsController {
 
   @Get()
   @HttpCode(200)
-  getAllProducts(@Param() query: any) {
+  getAllProducts(@Query() query: any) {
     return this.productsService.getAllProducts(query);
   }
 
-  @Get('/search')
+  @Get("/:productId")
   @HttpCode(200)
-  searchProduct(@Param() query: any) {
+  getProductById(@Param('productId') productId: string) {
+    return this.productsService.getProductById(productId);
+  }
+
+  @Get('/search/product')
+  @HttpCode(200)
+  searchProduct(@Query() query: any) {
+    // console.log(query);
     return this.productsService.searchProducts(query);
   }
 

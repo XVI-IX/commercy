@@ -70,7 +70,7 @@ export class ProductsService {
         message: 'Products retrieved successfully',
         status: 'success',
         statusCode: 200,
-        data: products.rows[0],
+        data: products.rows,
         page,
       };
     } catch (error) {
@@ -102,10 +102,13 @@ export class ProductsService {
 
   async searchProducts(query: any) {
     const { search, page = 1, limit = 10 } = query;
+    console.log(search, page, limit);
     try {
-      let query =
-        'SELECT * FROM products WHERE product_name LIKE $1 LIMIT $2 OFFSET $3';
-      const values = [search, limit, (page - 1) * limit];
+      const query =
+        'SELECT * FROM products WHERE product_name ILIKE $1 LIMIT $2 OFFSET $3';
+
+      const searchPattern = `%${search}%`; // adding % for pattern matching
+      const values = [searchPattern, limit, (page - 1) * limit];
 
       const result = await this.pg.query(query, values);
       console.log(result);
@@ -117,7 +120,7 @@ export class ProductsService {
         message: 'Product retrieved',
         status: 'success',
         statusCode: 200,
-        data: result.rows[0],
+        data: result.rows,
         page,
       };
     } catch (error) {
