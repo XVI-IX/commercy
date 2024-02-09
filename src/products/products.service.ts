@@ -242,7 +242,8 @@ export class ProductsService {
 
   async getRating(product_id: string) {
     try {
-      const query = 'SELECT AVG(rating), MIN(rating), MAX(rating) FROM reviews WHERE product_id = $1';
+      const query =
+        'SELECT AVG(rating), MIN(rating), MAX(rating) FROM reviews WHERE product_id = $1';
 
       const result = await this.pg.query(query, [product_id]);
 
@@ -255,7 +256,7 @@ export class ProductsService {
         status: 'success',
         statusCode: 200,
         rating: result.rows[0],
-      }
+      };
     } catch (error) {
       console.error(error);
       throw error;
