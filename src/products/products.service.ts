@@ -131,13 +131,16 @@ export class ProductsService {
 
   async updateProduct(product_id: any, dto: UpdateProductDto) {
     try {
-      const query = 'UPDATE products SET WHERE product_id = $1 RETURNING *';
+      const query =
+        'UPDATE products SET product_name = $1, product_description = $2, price = $3, category = $4, quantity = $5, product_img = $6 WHERE product_id = $7 RETURNING *';
       const values = [
         dto.product_name,
         dto.product_description,
         dto.price,
         dto.category,
         dto.quantity,
+        dto.product_img,
+        product_id,
       ];
 
       const product = await this.pg.query(query, values);
@@ -237,8 +240,22 @@ export class ProductsService {
     }
   }
 
-  async getRating() {
+  async getRating(product_id: string) {
     try {
+      const query = 'SELECT AVG(rating), MIN(rating), MAX(rating) FROM reviews WHERE product_id = $1';
+
+      const result = await this.pg.query(query, [product_id]);
+
+      if (!result) {
+        throw new InternalServerErrorException('Rating could not be retrieved');
+      }
+
+      return {
+        message: 'Rating retrieved successfully',
+        status: 'success',
+        statusCode: 200,
+        rating: result.rows[0],
+      }
     } catch (error) {
       console.error(error);
       throw error;

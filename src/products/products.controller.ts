@@ -29,7 +29,7 @@ export class ProductsController {
     return this.productsService.getAllProducts(query);
   }
 
-  @Get("/:productId")
+  @Get('/:productId')
   @HttpCode(200)
   getProductById(@Param('productId') productId: string) {
     return this.productsService.getProductById(productId);
@@ -38,7 +38,6 @@ export class ProductsController {
   @Get('/search/product')
   @HttpCode(200)
   searchProduct(@Query() query: any) {
-    // console.log(query);
     return this.productsService.searchProducts(query);
   }
 
@@ -54,7 +53,7 @@ export class ProductsController {
   @Post('/:productId/reviews')
   @HttpCode(200)
   addReview(
-    @Param('productId') productId,
+    @Param('productId') productId: string,
     @Body() dto: ReviewDto,
     @User() user: any,
   ) {
@@ -65,6 +64,12 @@ export class ProductsController {
   @HttpCode(200)
   getReviews(@Param('productId') productId: string) {
     return this.productsService.getReviews(productId);
+  }
+
+  @Get('/:productId/rating')
+  @HttpCode(200)
+  getRating(@Param('productId') productId: string) {
+    return this.productsService.getRating(productId);
   }
 
   @Delete('/:productId')

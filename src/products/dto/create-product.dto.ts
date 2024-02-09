@@ -20,4 +20,7 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsNumber()
   quantity: number;
+
+  @IsString()
+  product_img: string;
 }

@@ -71,7 +71,7 @@ model reviews {
   user_id    Int
   username   String
   content    String
-  rating     Int
+  rating     Float
   products   products? @relation(fields: [product_id], references: [product_id])
   product_id Int?
 }
