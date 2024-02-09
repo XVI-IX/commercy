@@ -10,7 +10,7 @@ import { PostgresService } from 'src/postgres/postgres.service';
 export class ProductsService {
   constructor(private pg: PostgresService) {}
 
-  async addProduct(user_id, dto: CreateProductDto) {
+  async addProduct(user_id: string, dto: CreateProductDto) {
     try {
       const query =
         'INSERT INTO products (user_id, product_name, product_description, price, category, quantity) VALUES ($1, $2, $3, $4, $5, $6)';
@@ -203,7 +203,7 @@ export class ProductsService {
         message: 'Review added successfully',
         status: 'success',
         statusCode: 200,
-        data: {},
+        data: result.rows[0],
       };
     } catch (error) {
       console.error(error);
