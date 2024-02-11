@@ -7,11 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum productStatus {
-  available
-  outofstock
-}
-
 model orders {
   order_id   Int       @id @default(autoincrement())
   product_id Int?
@@ -33,7 +28,7 @@ model products {
   product_img         String?       @db.VarChar(255)
   status              productStatus @default(available)
   orders              orders[]
-  users               users?        @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users               users?        @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
   reviews             reviews[]
 }
 
@@ -68,20 +63,25 @@ model users {
 
 model reviews {
   review_id  Int       @id @default(autoincrement())
-  users      users?    @relation(fields: [user_id], references: [user_id])
   user_id    Int
   username   String
   content    String
   rating     Float
-  products   products? @relation(fields: [product_id], references: [product_id])
   product_id Int?
+  products   products? @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
+  users      users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model wishlists {
-  wishlist_id Int    @id @default(autoincrement())
-  users       users? @relation(fields: [user_id], references: [user_id])
+  wishlist_id Int     @id @default(autoincrement())
   user_id     Int
   product_id  Int
   link        String?
   product_img String?
+  users       users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+enum productStatus {
+  available
+  outofstock
 }

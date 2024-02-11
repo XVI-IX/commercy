@@ -28,8 +28,8 @@ export class WishlistService {
         message: 'Product has been added to wishlist',
         status: 'success',
         statusCode: 200,
-        data: result.rows,
       };
+
     } catch (error) {
       console.error(error);
       throw error;
@@ -67,7 +67,7 @@ export class WishlistService {
   async deleteFromWishlist(user: any, product_id: string) {
     try {
       const query =
-        'DELETE FROM wishlist WHERE user_id = $1 AND product_id = $2;';
+        'DELETE FROM wishlists WHERE user_id = $1 AND product_id = $2;';
       const values = [user.sub, product_id];
 
       const result = await this.pg.query(query, values);
@@ -93,7 +93,7 @@ export class WishlistService {
   async clearWishlist(user: any) {
     try {
       const results = await this.pg.query(
-        'DELETE FROM wishlist WHERE user_id = $1',
+        'DELETE FROM wishlists WHERE user_id = $1',
         [user.sub],
       );
 
