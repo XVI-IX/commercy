@@ -17,6 +17,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CheckoutModule } from './checkout/checkout.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     WishlistModule,
     NotificationsModule,
     DashboardModule,
+    CheckoutModule,
   ],
   controllers: [AppController],
   providers: [
