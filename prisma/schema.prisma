@@ -43,8 +43,8 @@ model users {
   phone_number      String?     @db.VarChar(15)
   date_of_birth     DateTime?   @db.Date
   order_history     Json[]
-  wishlist          Json[]
-  cart_items        Json[]
+  // wishlist          Json[]
+  // cart_items        Json[]
   created_at        DateTime?   @default(now()) @db.Timestamp(6)
   last_login_at     DateTime?   @db.Timestamp(6)
   modified_at       DateTime?   @db.Timestamp(6)
@@ -57,6 +57,8 @@ model users {
   products          products[]
   reviews           reviews[]
   wishlists         wishlists[]
+  cart_id           Int
+  cart              cart[]
 
   @@index([verificationtoken], map: "idx_verificationtoken")
 }
@@ -79,6 +81,26 @@ model wishlists {
   link        String?
   product_img String?
   users       users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model cart {
+  cart_id     Int          @id @default(autoincrement())
+  user        users        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id     Int
+  created_at  DateTime?    @default(now()) @db.Timestamp(6)
+  modified_at DateTime?    @db.Timestamp(6)
+  cart_items  cart_items[]
+}
+
+model cart_items {
+  item_id     Int  @id @default(autoincrement())
+  cart        cart @relation(fields: [cart_id], references: [cart_id])
+  cart_id     Int
+  product_id  Int
+  quantity    Int
+  price       Float
+  discount    Float
+  added_at    DateTime? @default(now()) @db.Timestamp(6)
 }
 
 enum productStatus {

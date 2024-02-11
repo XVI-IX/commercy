@@ -29,7 +29,6 @@ export class WishlistService {
         status: 'success',
         statusCode: 200,
       };
-
     } catch (error) {
       console.error(error);
       throw error;
