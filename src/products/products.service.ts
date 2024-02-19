@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto, UpdateProductDto, ReviewDto } from './dto';
 import { PostgresService } from 'src/postgres/postgres.service';
+import { CreateCartDto } from 'src/cart/dto';
 
 @Injectable()
 export class ProductsService {
@@ -256,6 +257,38 @@ export class ProductsService {
         status: 'success',
         statusCode: 200,
         rating: result.rows[0],
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async addToCart(user: any, productId: string, dto: CreateCartDto) {
+    try {
+      const query =
+        'INSERT INTO cart_items (cart_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5)';
+      const values = [
+        user.cart_id,
+        productId,
+        dto.quantity,
+        dto.price,
+        dto.discount,
+      ];
+
+      const result = await this.pg.query(query, values);
+
+      if (!result) {
+        throw new InternalServerErrorException(
+          'Product could not be added to cart',
+        );
+      }
+
+      return {
+        message: 'Product added to cart.',
+        status: 'success',
+        statusCode: 200,
+        data: result.rows,
       };
     } catch (error) {
       console.error(error);

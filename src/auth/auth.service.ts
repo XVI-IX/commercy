@@ -31,7 +31,7 @@ export class AuthService {
       const verificationToken = this.randomString();
       const passwordhash = await argon.hash(dto.password);
       const query =
-        'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
+        'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *';
       const values = [
         dto.username,
         dto.first_name,
@@ -53,6 +53,8 @@ export class AuthService {
         throw new InternalServerErrorException('User could not be registered.');
       }
 
+      const newUser = result.rows[0];
+
       const data = {
         to: dto.email,
         username: dto.username,
@@ -60,6 +62,26 @@ export class AuthService {
       };
 
       this.eventEmmiter.emit('verify-user', data);
+
+      const cartQuery = 'INSERT INTO cart (user_id) VALUES ($1) RETURNING *';
+      const cartvalues = [newUser.user_id];
+
+      const cart = await this.pg.query(cartQuery, cartvalues);
+
+      if (!cart) {
+        throw new InternalServerErrorException('Cart could not be created');
+      }
+
+      console.log('Cart created');
+
+      const addToUser = await this.pg.query(
+        'UPDATE users SET cart_id = $1 WHERE user_id = $2',
+        [cart.rows[0].cart_id, newUser.user_id],
+      );
+
+      if (!addToUser) {
+        throw new InternalServerErrorException('user not updated');
+      }
 
       return {
         message: 'User Registered. Check email for verification Token',

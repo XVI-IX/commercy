@@ -12,6 +12,7 @@ import {
 import { ProductsService } from './products.service';
 import { CreateProductDto, ReviewDto, UpdateProductDto } from './dto';
 import { User } from 'src/decorator';
+import { CreateCartDto } from 'src/cart/dto';
 
 @Controller('products')
 export class ProductsController {
@@ -76,5 +77,15 @@ export class ProductsController {
   @HttpCode(200)
   deleteProduct(@Param('productId') productId: string) {
     return this.productsService.deleteProduct(productId);
+  }
+
+  @Post('/:productId/add-to-cart')
+  @HttpCode(200)
+  addToCart(
+    @User() user: any,
+    @Param('productId') productId: string,
+    dto: CreateCartDto,
+  ) {
+    return this.productsService.addToCart(user, productId, dto);
   }
 }

@@ -57,8 +57,7 @@ model users {
   products          products[]
   reviews           reviews[]
   wishlists         wishlists[]
-  cart_id           Int
-  cart              cart[]
+  cart_id           Int?
 
   @@index([verificationtoken], map: "idx_verificationtoken")
 }
@@ -85,21 +84,18 @@ model wishlists {
 
 model cart {
   cart_id     Int          @id @default(autoincrement())
-  user        users        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   user_id     Int
   created_at  DateTime?    @default(now()) @db.Timestamp(6)
   modified_at DateTime?    @db.Timestamp(6)
-  cart_items  cart_items[]
 }
 
 model cart_items {
   item_id     Int  @id @default(autoincrement())
-  cart        cart @relation(fields: [cart_id], references: [cart_id])
   cart_id     Int
   product_id  Int
-  quantity    Int
+  quantity    Int  @default(1)
   price       Float
-  discount    Float
+  discount    Float     @default(0)
   added_at    DateTime? @default(now()) @db.Timestamp(6)
 }
 

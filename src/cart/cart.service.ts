@@ -1,14 +1,22 @@
 import { Injectable, Body } from '@nestjs/common';
-import { CreateCartDto, UpdateCartDto } from './dto';
-import { User } from 'src/decorator';
+// import { CreateCartDto, UpdateCartDto } from './dto';
+// import { User } from 'src/decorator';
+import { PostgresService } from 'src/postgres/postgres.service';
 
 @Injectable()
 export class CartService {
-  addToCart(@User() user: any, @Body() dto: CreateCartDto) {
-    try {
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
+  constructor(private pg: PostgresService) {}
+
+  // addToCart(user, @Body() dto: CreateCartDto) {
+  //   try {
+  //     const query = 'INSERT INTO cart_items VALUES ()';
+  //     const values = [
+
+  //     ]
+  //     const cart = await this.pg.query();
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error;
+  //   }
+  // }
 }
