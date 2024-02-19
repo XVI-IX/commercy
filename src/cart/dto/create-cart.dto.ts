@@ -7,9 +7,5 @@ export class CreateCartDto {
 
   @IsNotEmpty()
   @IsNumber()
-  price: number;
-
-  @IsNotEmpty()
-  @IsNumber()
   discount: number;
 }

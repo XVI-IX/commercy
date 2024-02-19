@@ -28,7 +28,7 @@ model products {
   product_img         String?       @db.VarChar(255)
   status              productStatus @default(available)
   orders              orders[]
-  users               users?        @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
+  users               users?        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   reviews             reviews[]
 }
 
@@ -43,8 +43,6 @@ model users {
   phone_number      String?     @db.VarChar(15)
   date_of_birth     DateTime?   @db.Date
   order_history     Json[]
-  // wishlist          Json[]
-  // cart_items        Json[]
   created_at        DateTime?   @default(now()) @db.Timestamp(6)
   last_login_at     DateTime?   @db.Timestamp(6)
   modified_at       DateTime?   @db.Timestamp(6)
@@ -53,11 +51,11 @@ model users {
   email             String      @unique @db.VarChar(50)
   passwordhash      String      @unique @db.VarChar(255)
   verificationtoken String?     @db.VarChar(255)
+  cart_id           Int?
   orders            orders[]
   products          products[]
   reviews           reviews[]
   wishlists         wishlists[]
-  cart_id           Int?
 
   @@index([verificationtoken], map: "idx_verificationtoken")
 }
@@ -79,24 +77,26 @@ model wishlists {
   product_id  Int
   link        String?
   product_img String?
-  users       users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
+  users       users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
 model cart {
-  cart_id     Int          @id @default(autoincrement())
+  cart_id     Int       @id @default(autoincrement())
   user_id     Int
-  created_at  DateTime?    @default(now()) @db.Timestamp(6)
-  modified_at DateTime?    @db.Timestamp(6)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  modified_at DateTime? @db.Timestamp(6)
 }
 
 model cart_items {
-  item_id     Int  @id @default(autoincrement())
-  cart_id     Int
-  product_id  Int
-  quantity    Int  @default(1)
-  price       Float
-  discount    Float     @default(0)
-  added_at    DateTime? @default(now()) @db.Timestamp(6)
+  item_id    Int       @id @default(autoincrement())
+  cart_id    Int
+  product_id Int
+  quantity   Int       @default(1)
+  price      Float
+  discount   Float     @default(0)
+  added_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([cart_id, product_id], map: "unique_constraint")
 }
 
 enum productStatus {

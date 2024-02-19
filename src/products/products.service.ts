@@ -266,13 +266,26 @@ export class ProductsService {
 
   async addToCart(user: any, productId: string, dto: CreateCartDto) {
     try {
+      let product = await this.pg.query(
+        'SELECT * FROM products where product_id = $1',
+        [productId],
+      );
+
+      product = product.rows[0];
+
+      if (!product) {
+        throw new InternalServerErrorException(
+          'Product with ID could not be found',
+        );
+      }
+
       const query =
-        'INSERT INTO cart_items (cart_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5)';
+        'INSERT INTO cart_items (cart_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5) RETURNING *';
       const values = [
         user.cart_id,
         productId,
         dto.quantity,
-        dto.price,
+        product.price,
         dto.discount,
       ];
 

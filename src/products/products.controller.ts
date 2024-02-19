@@ -84,7 +84,7 @@ export class ProductsController {
   addToCart(
     @User() user: any,
     @Param('productId') productId: string,
-    dto: CreateCartDto,
+    @Body() dto: CreateCartDto,
   ) {
     return this.productsService.addToCart(user, productId, dto);
   }

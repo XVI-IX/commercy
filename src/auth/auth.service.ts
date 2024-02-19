@@ -137,6 +137,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         roles: [user.user_role.toLowerCase()],
+        cart_id: user.cart_id,
       };
 
       const token = await this.jwtService.signAsync(payload, {
