@@ -66,6 +66,23 @@ export class EmailService {
     }
   }
 
+  async resendTokenEmail(data: any) {
+    try {
+      await this.mailService.sendMail({
+        to: data.to,
+        subject: 'Your token has been reset',
+        template: 'resend-token',
+        context: {
+          username: data.username,
+          token: data.token,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async resetPasswordEmail(data: any) {
     try {
       await this.mailService.sendMail({
@@ -105,5 +122,10 @@ export class EmailService {
   @OnEvent('reset-password')
   handleResetPassword(data: any) {
     this.resetPasswordEmail(data);
+  }
+
+  @OnEvent('resend-token')
+  handleResendToken(data: any) {
+    this.resendTokenEmail(data);
   }
 }

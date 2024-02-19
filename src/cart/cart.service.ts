@@ -72,4 +72,26 @@ export class CartService {
       throw error;
     }
   }
+
+  async clearCart(user: any) {
+    try {
+      const cart = await this.pg.query('DELETE FROM users WHERE cart_id = $1', [
+        user.cart_id,
+      ]);
+
+      if (!cart) {
+        throw new InternalServerErrorException('Cart could not be cleared');
+      }
+
+      return {
+        message: 'Cart cleared successfully',
+        status: 'success',
+        statusCode: 200,
+        data: null,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

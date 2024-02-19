@@ -264,4 +264,31 @@ export class AuthService {
       throw error;
     }
   }
+
+  async resendToken(email: string) {
+    try {
+      const token = this.randomString();
+      const user = await this.pg.query(
+        'UPDATE users SET verificationToken = $1 WHERE email = $2 RETURNING *',
+        [token, email],
+      );
+
+      if (!user) {
+        throw new InternalServerErrorException(
+          'Verification token could not be reset',
+        );
+      }
+
+      const data = {
+        to: email,
+        username: user.rows[0].username,
+        token: token,
+      };
+
+      this.eventEmmiter.emit('resend-token', data);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

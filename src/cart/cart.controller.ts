@@ -28,4 +28,9 @@ export class CartController {
   ) {
     return this.cartService.deleteCartItem(user, productId);
   }
+
+  @Delete()
+  async clearCart(@User() user: any) {
+    return this.cartService.clearCart(user);
+  }
 }

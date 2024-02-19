@@ -42,4 +42,11 @@ export class AuthController {
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }
+
+  @Public()
+  @HttpCode(200)
+  @Post('/reset-token')
+  async resetToken(@Body('email') email: string) {
+    return this.authService.resendToken(email);
+  }
 }
