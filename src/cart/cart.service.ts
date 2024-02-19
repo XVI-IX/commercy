@@ -1,4 +1,9 @@
-import { Injectable, Body } from '@nestjs/common';
+import {
+  Injectable,
+  Body,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 // import { CreateCartDto, UpdateCartDto } from './dto';
 // import { User } from 'src/decorator';
 import { PostgresService } from 'src/postgres/postgres.service';
@@ -7,16 +12,25 @@ import { PostgresService } from 'src/postgres/postgres.service';
 export class CartService {
   constructor(private pg: PostgresService) {}
 
-  // addToCart(user, @Body() dto: CreateCartDto) {
-  //   try {
-  //     const query = 'INSERT INTO cart_items VALUES ()';
-  //     const values = [
+  async getCartItems(user: any) {
+    try {
+      const cart = await this.pg.query(
+        'SELECT * FROM cart_items WHERE cart_id = $1',
+        [user.cart_id],
+      );
 
-  //     ]
-  //     const cart = await this.pg.query();
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // }
+      if (!cart) {
+        throw new InternalServerErrorException('Cart could not be retrieved');
+      }
+
+      if (cart.rows[0].length === 0) {
+        throw new NotFoundException('Cart has no items');
+      }
+
+      return;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

@@ -91,6 +91,9 @@ model cart_items {
   item_id    Int       @id @default(autoincrement())
   cart_id    Int
   product_id Int
+  product_name String
+  product_description String
+  product_img String
   quantity   Int       @default(1)
   price      Float
   discount   Float     @default(0)

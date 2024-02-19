@@ -14,7 +14,7 @@ export class ProductsService {
   async addProduct(user_id: string, dto: CreateProductDto) {
     try {
       const query =
-        'INSERT INTO products (user_id, product_name, product_description, price, category, quantity) VALUES ($1, $2, $3, $4, $5, $6)';
+        'INSERT INTO products (user_id, product_name, product_description, price, category, quantity, product_img) VALUES ($1, $2, $3, $4, $5, $6, $7)';
       const values = [
         user_id,
         dto.product_name,
@@ -22,6 +22,7 @@ export class ProductsService {
         dto.price,
         dto.category,
         dto.quantity,
+        dto.product_img,
       ];
 
       const product = await this.pg.query(query, values);
@@ -279,13 +280,18 @@ export class ProductsService {
         );
       }
 
+      console.log(product);
+
       const query =
-        'INSERT INTO cart_items (cart_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+        'INSERT INTO cart_items (cart_id, product_id, product_name, product_description, product_img, quantity, price, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
       const values = [
         user.cart_id,
         productId,
+        product.product_name,
+        product.product_description,
+        product.product_img,
         dto.quantity,
-        product.price,
+        product.price * dto.quantity,
         dto.discount,
       ];
 

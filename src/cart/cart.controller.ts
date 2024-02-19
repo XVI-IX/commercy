@@ -20,4 +20,9 @@ export class CartController {
   // async addToCart(@User() user: any, @Body() dto: CreateCartDto) {
   //   return this.cartService.addToCart(user, dto);
   // }
+
+  @Get('/')
+  async getCartItems(@User() user: any) {
+    return this.cartService.getCartItems(user);
+  }
 }
