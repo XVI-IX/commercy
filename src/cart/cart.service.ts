@@ -43,6 +43,14 @@ export class CartService {
     }
   }
 
+  async removeFromCart(user: User, product_id: number) {
+    try {
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async deleteCartItem(user: User, productId: number) {
     try {
       if (!user || !productId) {

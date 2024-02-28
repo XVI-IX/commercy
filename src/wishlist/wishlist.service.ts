@@ -5,20 +5,32 @@ import {
 } from '@nestjs/common';
 import { PostgresService } from 'src/postgres/postgres.service';
 import { WishListDto } from './dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class WishlistService {
-  constructor(private pg: PostgresService) {}
+  constructor(
+    private pg: PostgresService,
+    private prisma: PrismaService,
+  ) {}
 
-  async addToWishlist(user: any, product_id: string, dto: WishListDto) {
+  async addToWishlist(user: User, product_id: number, dto: WishListDto) {
     try {
-      const query =
-        'INSERT INTO wishlists (user_id, product_id, link, product_img) VALUES ($1, $2, $3, $4)';
-      const values = [user.sub, product_id, dto.link, dto.product_img];
+      const wishlist = await this.prisma.wishlists.create({
+        data: {
+          users: {
+            connect: {
+              id: user.sub,
+            },
+          },
+          product_id: product_id,
+          link: dto.link,
+          product_img: dto.product_img,
+        },
+      });
 
-      const result = await this.pg.query(query, values);
-
-      if (!result) {
+      if (!wishlist) {
         throw new InternalServerErrorException(
           'Product could not be added to wishlist',
         );
@@ -35,14 +47,15 @@ export class WishlistService {
     }
   }
 
-  async getWishlist(user: any) {
+  async getWishlist(user: User) {
     try {
-      const wishlist = await this.pg.query(
-        'SELECT * FROM wishlists WHERE user_id = $1',
-        [user.sub],
-      );
+      const wishlist = await this.prisma.wishlists.findMany({
+        where: {
+          user_id: user.sub,
+        },
+      });
 
-      if (wishlist.rows.length === 0) {
+      if (wishlist.length === 0) {
         throw new NotFoundException('You have no items in your wishlist');
       }
       if (!wishlist) {
@@ -55,7 +68,7 @@ export class WishlistService {
         message: 'wishlist retrieved successfully',
         status: 'success',
         statusCode: 200,
-        data: wishlist.rows,
+        data: wishlist,
       };
     } catch (error) {
       console.error(error);
@@ -63,15 +76,16 @@ export class WishlistService {
     }
   }
 
-  async deleteFromWishlist(user: any, product_id: string) {
+  async deleteFromWishlist(user: User, product_id: number) {
     try {
-      const query =
-        'DELETE FROM wishlists WHERE user_id = $1 AND product_id = $2;';
-      const values = [user.sub, product_id];
+      const wishlist = await this.prisma.wishlists.deleteMany({
+        where: {
+          user_id: user.sub,
+          product_id: product_id,
+        },
+      });
 
-      const result = await this.pg.query(query, values);
-
-      if (!result) {
+      if (!wishlist) {
         throw new InternalServerErrorException(
           'Product could not be deleted from wishlist',
         );
@@ -89,14 +103,15 @@ export class WishlistService {
     }
   }
 
-  async clearWishlist(user: any) {
+  async clearWishlist(user: User) {
     try {
-      const results = await this.pg.query(
-        'DELETE FROM wishlists WHERE user_id = $1',
-        [user.sub],
-      );
+      const wishlist = await this.prisma.wishlists.deleteMany({
+        where: {
+          user_id: user.sub,
+        },
+      });
 
-      if (!results) {
+      if (!wishlist) {
         throw new InternalServerErrorException('wishlist could not be cleared');
       }
 
