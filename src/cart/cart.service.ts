@@ -4,31 +4,30 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-// import { CreateCartDto, UpdateCartDto } from './dto';
-// import { User } from 'src/decorator';
 import { PostgresService } from 'src/postgres/postgres.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class CartService {
-  constructor(private pg: PostgresService) {}
+  constructor(
+    private pg: PostgresService,
+    private prisma: PrismaService,
+  ) {}
 
-  async getCartItems(user: any) {
+  async getCartItems(user: User) {
     try {
-      const cart = await this.pg.query(
-        'SELECT * FROM cart_items WHERE id = $1',
-        [user.cart_id],
-      );
-
-      console.log(user);
-      console.log(cart.rows);
+      const cart = await this.prisma.cart_items.findMany({
+        where: {
+          cart_id: user.cart_id,
+        },
+      });
 
       if (!cart) {
         throw new InternalServerErrorException('Cart could not be retrieved');
       }
 
-      // console.log(cart);
-
-      if (cart.rows.length === 0) {
+      if (cart.length === 0) {
         throw new NotFoundException('Cart has no items');
       }
 
@@ -36,7 +35,7 @@ export class CartService {
         message: 'Cart items retrieved.',
         status: 'success',
         statusCode: 200,
-        data: cart.rows[0],
+        data: cart,
       };
     } catch (error) {
       console.error(error);
@@ -44,16 +43,18 @@ export class CartService {
     }
   }
 
-  async deleteCartItem(user: any, productId: string) {
+  async deleteCartItem(user: User, productId: number) {
     try {
       if (!user || !productId) {
         throw new BadRequestException('Invalid parameters');
       }
 
-      const cart = await this.pg.query(
-        'DELETE FROM cart_items WHERE id = $1 AND product_id = $2',
-        [user.cart_id, productId],
-      );
+      const cart = await this.prisma.cart_items.deleteMany({
+        where: {
+          cart_id: user.cart_id,
+          product_id: productId,
+        },
+      });
 
       if (!cart) {
         throw new InternalServerErrorException(
@@ -73,11 +74,13 @@ export class CartService {
     }
   }
 
-  async clearCart(user: any) {
+  async clearCart(user: User) {
     try {
-      const cart = await this.pg.query('DELETE FROM users WHERE id = $1', [
-        user.cart_id,
-      ]);
+      const cart = await this.prisma.cart_items.deleteMany({
+        where: {
+          cart_id: user.cart_id,
+        },
+      });
 
       if (!cart) {
         throw new InternalServerErrorException('Cart could not be cleared');

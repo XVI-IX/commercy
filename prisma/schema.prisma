@@ -70,7 +70,7 @@ model users {
   user_role         String?     @db.VarChar(20)
   email             String      @unique @db.VarChar(50)
   passwordhash      String      @unique @db.VarChar(255)
-  verificationtoken String?     @db.VarChar(255) @unique
+  verificationtoken String?     @unique @db.VarChar(255)
   cart_id           Int?
   orders            orders[]
   products          products[]
@@ -101,14 +101,16 @@ model wishlists {
 }
 
 model cart {
-  id          Int       @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   user_id     Int
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  modified_at DateTime? @db.Timestamp(6)
+  created_at  DateTime?    @default(now()) @db.Timestamp(6)
+  modified_at DateTime?    @db.Timestamp(6)
+  cart_items  cart_items[]
 }
 
 model cart_items {
   id                  Int       @id @default(autoincrement())
+  cart                cart      @relation(fields: [cart_id], references: [id], onDelete: Cascade)
   cart_id             Int
   product_id          Int
   product_name        String

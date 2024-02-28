@@ -6,26 +6,32 @@ import {
 import { CreateProductDto, UpdateProductDto, ReviewDto } from './dto';
 import { PostgresService } from 'src/postgres/postgres.service';
 import { CreateCartDto } from 'src/cart/dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private pg: PostgresService) {}
+  constructor(
+    private pg: PostgresService,
+    private prisma: PrismaService,
+  ) {}
 
-  async addProduct(user_id: string, dto: CreateProductDto) {
+  async addProduct(user_id: number, dto: CreateProductDto) {
     try {
-      const query =
-        'INSERT INTO products (user_id, product_name, product_description, price, category, quantity, product_img) VALUES ($1, $2, $3, $4, $5, $6, $7)';
-      const values = [
-        user_id,
-        dto.product_name,
-        dto.product_description,
-        dto.price,
-        dto.category,
-        dto.quantity,
-        dto.product_img,
-      ];
-
-      const product = await this.pg.query(query, values);
+      const product = await this.prisma.products.create({
+        data: {
+          users: {
+            connect: {
+              id: user_id,
+            },
+          },
+          product_name: dto.product_name,
+          price: dto.price,
+          category: dto.category,
+          quantity: dto.quantity,
+          product_img: dto.product_img,
+          product_description: dto.product_description,
+        },
+      });
 
       if (!product) {
         throw new InternalServerErrorException('Product could not be added.');
@@ -35,7 +41,7 @@ export class ProductsService {
         message: 'Product has been added successfully.',
         status: 'success',
         statusCode: 201,
-        data: product.rows[0],
+        data: product,
       };
     } catch (error) {
       console.error(error);
