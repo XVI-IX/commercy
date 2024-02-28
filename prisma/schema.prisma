@@ -70,7 +70,7 @@ model users {
   user_role         String?     @db.VarChar(20)
   email             String      @unique @db.VarChar(50)
   passwordhash      String      @unique @db.VarChar(255)
-  verificationtoken String?     @db.VarChar(255)
+  verificationtoken String?     @db.VarChar(255) @unique
   cart_id           Int?
   orders            orders[]
   products          products[]

@@ -13,12 +13,13 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomBytes } from 'crypto';
 import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private config: ConfigService,
-    private pg: PostgresService,
+    private prisma: PrismaService,
     private eventEmmiter: EventEmitter2,
   ) {}
 
@@ -30,30 +31,26 @@ export class AuthService {
     try {
       const verificationToken = this.randomString();
       const passwordhash = await argon.hash(dto.password);
-      const query =
-        'INSERT INTO users (username, first_name, last_name, avatar, billing_address, shipping_address, phone_number, date_of_birth, user_role, email, passwordhash, verificationToken) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *';
-      const values = [
-        dto.username,
-        dto.first_name,
-        dto.last_name,
-        dto.avatar,
-        dto.billing_address,
-        dto.shipping_address,
-        dto.phone_number,
-        dto.date_of_birth,
-        dto.user_role,
-        dto.email,
-        passwordhash,
-        verificationToken,
-      ];
+      const newUser = await this.prisma.users.create({
+        data: {
+          username: dto.username,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
+          avatar: dto.avatar,
+          billing_address: dto.billing_address,
+          shipping_address: dto.shipping_address,
+          phone_number: dto.phone_number,
+          date_of_birth: dto.date_of_birth,
+          user_role: dto.user_role,
+          email: dto.email,
+          passwordhash: passwordhash,
+          verificationtoken: verificationToken,
+        },
+      });
 
-      const result = await this.pg.query(query, values);
-
-      if (!result) {
-        throw new InternalServerErrorException('User could not be registered.');
+      if (!newUser) {
+        throw new InternalServerErrorException('User could not be created.');
       }
-
-      const newUser = result.rows[0];
 
       const data = {
         to: dto.email,
@@ -63,10 +60,11 @@ export class AuthService {
 
       this.eventEmmiter.emit('verify-user', data);
 
-      const cartQuery = 'INSERT INTO cart (id) VALUES ($1) RETURNING *';
-      const cartvalues = [newUser.id];
-
-      const cart = await this.pg.query(cartQuery, cartvalues);
+      const cart = await this.prisma.cart.create({
+        data: {
+          user_id: newUser.id,
+        },
+      });
 
       if (!cart) {
         throw new InternalServerErrorException('Cart could not be created');
@@ -74,10 +72,14 @@ export class AuthService {
 
       console.log('Cart created');
 
-      const addToUser = await this.pg.query(
-        'UPDATE users SET cart_id = $1 WHERE id = $2',
-        [cart.rows[0].cart_id, newUser.id],
-      );
+      const addToUser = await this.prisma.users.update({
+        where: {
+          id: newUser.id,
+        },
+        data: {
+          cart_id: cart.id,
+        },
+      });
 
       if (!addToUser) {
         throw new InternalServerErrorException('user not updated');
@@ -96,7 +98,11 @@ export class AuthService {
 
   async signIn(dto: LoginDto) {
     try {
-      const user = await this.pg.getUser(dto.email);
+      const user = await this.prisma.users.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
 
       if (!user) {
         throw new NotFoundException('User with email not found');
@@ -105,16 +111,19 @@ export class AuthService {
       if (!user.verified) {
         const verificationToken = this.randomString();
 
-        const query =
-          'UPDATE users SET verificationToken = $1 WHERE id = $2 RETURNING *';
-        const values = [verificationToken, user.id];
-
-        const update = await this.pg.query(query, values);
+        const update = await this.prisma.users.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            verificationtoken: verificationToken,
+          },
+        });
 
         const data = {
-          to: update.rows[0].email,
-          username: update.rows[0].username,
-          token: update.rows[0].verificationToken,
+          to: update.email,
+          username: update.username,
+          token: update.verificationtoken,
         };
 
         this.eventEmmiter.emit('verify-user', data);
@@ -155,24 +164,16 @@ export class AuthService {
 
   async verifyAccount(token: string) {
     try {
-      const query =
-        'SELECT * FROM users WHERE verificationtoken = CAST($1 AS VARCHAR(255));';
-      const result = await this.pg.query(query, [token]);
+      const user = await this.prisma.users.update({
+        where: {
+          verificationtoken: token,
+        },
+        data: {
+          verified: true,
+        },
+      });
 
-      console.log(result.rows);
-
-      if (result.rows.length === 0) {
-        throw new NotFoundException('User with token not found');
-      }
-
-      const updateQuery =
-        'UPDATE users SET verified = $1 WHERE id = $2 RETURNING *';
-      const verifyUser = await this.pg.query(updateQuery, [
-        true,
-        result.rows[0].id,
-      ]);
-
-      if (!verifyUser.rows[0].verified) {
+      if (!user.verified) {
         throw new InternalServerErrorException('User could not be verified');
       }
 
@@ -189,13 +190,21 @@ export class AuthService {
 
   async forgotPassword(dto: ForgotPasswordDto) {
     try {
-      const user = await this.pg.getUser(dto.email);
+      const user = await this.prisma.users.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
 
       const verificationToken = this.randomString();
-
-      const query = 'UPDATE users SET verificationToken = $1 WHERE email = $2';
-
-      const result = await this.pg.query(query, [verificationToken, dto.email]);
+      const result = await this.prisma.users.update({
+        where: {
+          email: user.email,
+        },
+        data: {
+          verificationtoken: verificationToken,
+        },
+      });
 
       if (!result) {
         throw new InternalServerErrorException('Could not generate OTP');
@@ -222,29 +231,29 @@ export class AuthService {
 
   async resetPassword(dto: ResetPasswordDto) {
     try {
-      const user = await this.pg.getUser(dto.email);
+      const user = await this.prisma.users.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
 
       if (user.verificationtoken !== dto.token) {
         throw new BadRequestException('Invalid token');
       }
 
       const passwordhash = await argon.hash(dto.password);
+      const update = await this.prisma.users.update({
+        where: {
+          email: dto.email,
+        },
+        data: {
+          passwordhash: passwordhash,
+          verificationtoken: undefined,
+        },
+      });
 
-      let query = 'UPDATE users SET passwordhash = $1 WHERE email = $2';
-
-      let result = await this.pg.query(query, [passwordhash, dto.email]);
-
-      if (!result) {
+      if (!update) {
         throw new InternalServerErrorException('Password could not be reset');
-      }
-
-      query = 'UPDATE users SET verificationToken = $1 WHERE email = $2';
-      result = await this.pg.query(query, [undefined, dto.email]);
-
-      if (!result) {
-        throw new InternalServerErrorException(
-          'Verification Token could not be reset',
-        );
       }
 
       const data = {
@@ -268,10 +277,14 @@ export class AuthService {
   async resendToken(email: string) {
     try {
       const token = this.randomString();
-      const user = await this.pg.query(
-        'UPDATE users SET verificationToken = $1 WHERE email = $2 RETURNING *',
-        [token, email],
-      );
+      const user = await this.prisma.users.update({
+        where: {
+          email: email,
+        },
+        data: {
+          verificationtoken: token,
+        },
+      });
 
       if (!user) {
         throw new InternalServerErrorException(
@@ -281,7 +294,7 @@ export class AuthService {
 
       const data = {
         to: email,
-        username: user.rows[0].username,
+        username: user.username,
         token: token,
       };
 
