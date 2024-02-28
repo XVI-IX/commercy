@@ -62,7 +62,6 @@ model users {
   shipping_address  String?     @db.VarChar(255)
   phone_number      String?     @db.VarChar(15)
   date_of_birth     DateTime?   @db.Date
-  order_history     Json[]
   created_at        DateTime?   @default(now()) @db.Timestamp(6)
   last_login_at     DateTime?   @db.Timestamp(6)
   modified_at       DateTime?   @db.Timestamp(6)
@@ -72,10 +71,10 @@ model users {
   passwordhash      String      @unique @db.VarChar(255)
   verificationtoken String?     @unique @db.VarChar(255)
   cart_id           Int?
-  orders            orders[]
+  order_history            orders[]
   products          products[]
   reviews           reviews[]
-  wishlists         wishlists[]
+  wishlist         wishlists[]
 
   @@index([verificationtoken], map: "idx_verificationtoken")
 }

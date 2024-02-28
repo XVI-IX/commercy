@@ -1,40 +1,52 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UserUpdateDto, UpdateRoleDto } from './dto';
 import { PostgresService } from 'src/postgres/postgres.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private pg: PostgresService) {}
+  constructor(
+    private pg: PostgresService,
+    private prisma: PrismaService,
+    ) {}
 
   async getProfile(user_email: string) {
     try {
-      const user = await this.pg.getUser(user_email);
+      const user = await this.prisma.users.findUnique({
+        where: {
+          email: user_email
+        },
+        select: {
+          id: true,
+          username: true,
+          last_name: true,
+          first_name: true,
+          avatar: true,
+          billing_address: true,
+          shipping_address: true,
+          phone_number: true,
+          order_history: true,
+          wishlist: true,
+        }
+      });
+
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
 
       return {
         message: 'User profile retrieved',
         status: 'success',
         statusCode: 200,
-        data: {
-          user_id: user.id,
-          username: user.username,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          avatar: user.avatar,
-          billing_address: user.billing_address,
-          shipping_address: user.shipping_address,
-          phone_number: user.phone_number,
-          order_history: user.order_history,
-          wishlist: user.wishlist,
-          email: user.email,
-        },
-      };
+        data: user
+      }
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async updateProfile(id: string, dto: UserUpdateDto) {
+  async updateProfile(id: number, dto: UserUpdateDto) {
     try {
       const query =
         'UPDATE users SET first_name = $1, last_name = $2, avatar = $3, billing_address = $4, shipping_address = $5, phone_number = $6, date_of_birth = $7, modified_at = CURRENT_TIMESTAMP WHERE id = $8 RETURNING *';
@@ -49,8 +61,18 @@ export class UserService {
         id,
       ];
 
-      const user = await this.pg.query(query, values);
-      console.log(user.rows);
+      const user = await this.prisma.users.update({
+        where: {
+          id: id
+        },
+        data: dto,
+        select: {
+          username: true,
+          first_name: true,
+          last_name: true,
+          email: true
+        }
+        )
       if (!user) {
         throw new InternalServerErrorException(
           'User data could not be updated',
@@ -61,12 +83,7 @@ export class UserService {
         message: 'User data updated successfully',
         status: 'success',
         statusCode: 200,
-        data: {
-          username: user.rows[0].username,
-          first_name: user.rows[0].first_name,
-          last_name: user.rows[0].last_name,
-          email: user.rows[0].email,
-        },
+        data: user,
       };
     } catch (error) {
       console.error(error);
@@ -74,11 +91,23 @@ export class UserService {
     }
   }
 
-  async changeRole(user_id: string, dto: UpdateRoleDto) {
+  async changeRole(user_id: number, dto: UpdateRoleDto) {
     try {
-      const query = 'UPDATE users SET user_role = $1 WHERE id = $2 RETURNING *';
-      const values = [dto.role, user_id];
-      const user = await this.pg.query(query, values);
+      const user = await this.prisma.users.update({
+        where: {
+          id: user_id
+        },
+        data: {
+          user_role: dto.role
+        },
+        select: {
+          email: true,
+          username: true,
+          user_role: true,
+          first_name: true,
+          last_name: true,
+        }
+      })
 
       if (!user) {
         throw new InternalServerErrorException(
@@ -86,19 +115,11 @@ export class UserService {
         );
       }
 
-      console.log(user.rows);
-
       return {
         message: 'User role updated.',
         status: 'success',
         statusCode: 200,
-        data: {
-          email: user.rows[0].email,
-          username: user.rows[0].username,
-          role: user.rows[0].user_role,
-          first_name: user.rows[0].first_name,
-          last_name: user.rows[0].last_name,
-        },
+        data: user
       };
     } catch (error) {
       console.error(error);
@@ -106,11 +127,13 @@ export class UserService {
     }
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(id: number) {
     try {
-      const query = 'DELETE FROM users WHERE id = $1';
-
-      const user = await this.pg.query(query, [id]);
+      const user = await this.prisma.users.delete({
+        where: {
+          id: id
+        }
+      })
 
       if (!user) {
         throw new InternalServerErrorException('User could not be deleted');
