@@ -7,18 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum GenericStatus {
+  pending
+  shipped
+  completed
+  cancelled
+}
+
 model orders {
-  order_id   Int       @id @default(autoincrement())
-  product_id Int?
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  user_id    Int?
+  id              Int           @id @default(autoincrement())
+  user            users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id         Int
+  status          GenericStatus @default(pending)
+  total_price     Float
+  shippingAddress String
+  billingAddress  String?
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt
+  orderItems      orderItems[]
+}
+
+model orderItems {
+  id         Int      @id @default(autoincrement())
+  product    products @relation(fields: [product_id], references: [id])
+  product_id Int
+  order      orders   @relation(fields: [order_id], references: [id])
+  order_id   Int
   quantity   Int?
-  products   products? @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction)
-  users      users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  price      Float
 }
 
 model products {
-  product_id          Int           @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   user_id             Int?
   product_name        String?       @db.VarChar(255)
   product_description String?
@@ -27,13 +47,13 @@ model products {
   quantity            Int           @default(0)
   product_img         String?       @db.VarChar(255)
   status              productStatus @default(available)
-  orders              orders[]
-  users               users?        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  users               users?        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   reviews             reviews[]
+  orderItems          orderItems[]
 }
 
 model users {
-  user_id           Int         @id @default(autoincrement())
+  id                Int         @id @default(autoincrement())
   username          String?     @unique @db.VarChar(50)
   first_name        String      @db.VarChar(50)
   last_name         String      @db.VarChar(50)
@@ -61,43 +81,43 @@ model users {
 }
 
 model reviews {
-  review_id  Int       @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   user_id    Int
   username   String
   content    String
   rating     Float
   product_id Int?
-  products   products? @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
-  users      users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model wishlists {
-  wishlist_id Int     @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   user_id     Int
   product_id  Int
   link        String?
   product_img String?
-  users       users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  users       users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model cart {
-  cart_id     Int       @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   user_id     Int
   created_at  DateTime? @default(now()) @db.Timestamp(6)
   modified_at DateTime? @db.Timestamp(6)
 }
 
 model cart_items {
-  item_id    Int       @id @default(autoincrement())
-  cart_id    Int
-  product_id Int
-  product_name String
+  id                  Int       @id @default(autoincrement())
+  cart_id             Int
+  product_id          Int
+  product_name        String
   product_description String
-  product_img String
-  quantity   Int       @default(1)
-  price      Float
-  discount   Float     @default(0)
-  added_at   DateTime? @default(now()) @db.Timestamp(6)
+  product_img         String
+  quantity            Int       @default(1)
+  price               Float
+  discount            Float     @default(0)
+  added_at            DateTime? @default(now()) @db.Timestamp(6)
 
   @@unique([cart_id, product_id], map: "unique_constraint")
 }

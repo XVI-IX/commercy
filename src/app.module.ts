@@ -18,6 +18,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CheckoutModule } from './checkout/checkout.module';
     NotificationsModule,
     DashboardModule,
     CheckoutModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [

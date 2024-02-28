@@ -83,7 +83,7 @@ export class ProductsService {
 
   async getProductById(product_id: string) {
     try {
-      const query = 'SELECT * FROM products WHERE product_id = $1';
+      const query = 'SELECT * FROM products WHERE id = $1';
       const product = await this.pg.query(query, [product_id]);
 
       if (product.rows.length === 0) {
@@ -134,7 +134,7 @@ export class ProductsService {
   async updateProduct(product_id: any, dto: UpdateProductDto) {
     try {
       const query =
-        'UPDATE products SET product_name = $1, product_description = $2, price = $3, category = $4, quantity = $5, product_img = $6 WHERE product_id = $7 RETURNING *';
+        'UPDATE products SET product_name = $1, product_description = $2, price = $3, category = $4, quantity = $5, product_img = $6 WHERE id = $7 RETURNING *';
       const values = [
         dto.product_name,
         dto.product_description,
@@ -171,7 +171,7 @@ export class ProductsService {
 
   async deleteProduct(product_id: string) {
     try {
-      const query = 'DELETE FROM products WHERE product_id = $1';
+      const query = 'DELETE FROM products WHERE id = $1';
       const result = await this.pg.query(query, [product_id]);
 
       if (!result) {
@@ -268,7 +268,7 @@ export class ProductsService {
   async addToCart(user: any, productId: string, dto: CreateCartDto) {
     try {
       let product = await this.pg.query(
-        'SELECT * FROM products where product_id = $1',
+        'SELECT * FROM products where id = $1',
         [productId],
       );
 

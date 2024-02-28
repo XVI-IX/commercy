@@ -63,8 +63,8 @@ export class AuthService {
 
       this.eventEmmiter.emit('verify-user', data);
 
-      const cartQuery = 'INSERT INTO cart (user_id) VALUES ($1) RETURNING *';
-      const cartvalues = [newUser.user_id];
+      const cartQuery = 'INSERT INTO cart (id) VALUES ($1) RETURNING *';
+      const cartvalues = [newUser.id];
 
       const cart = await this.pg.query(cartQuery, cartvalues);
 
@@ -75,8 +75,8 @@ export class AuthService {
       console.log('Cart created');
 
       const addToUser = await this.pg.query(
-        'UPDATE users SET cart_id = $1 WHERE user_id = $2',
-        [cart.rows[0].cart_id, newUser.user_id],
+        'UPDATE users SET cart_id = $1 WHERE id = $2',
+        [cart.rows[0].cart_id, newUser.id],
       );
 
       if (!addToUser) {
@@ -106,8 +106,8 @@ export class AuthService {
         const verificationToken = this.randomString();
 
         const query =
-          'UPDATE users SET verificationToken = $1 WHERE user_id = $2 RETURNING *';
-        const values = [verificationToken, user.user_id];
+          'UPDATE users SET verificationToken = $1 WHERE id = $2 RETURNING *';
+        const values = [verificationToken, user.id];
 
         const update = await this.pg.query(query, values);
 
@@ -133,7 +133,7 @@ export class AuthService {
       }
 
       const payload = {
-        sub: user.user_id,
+        sub: user.id,
         username: user.username,
         email: user.email,
         roles: [user.user_role.toLowerCase()],
@@ -166,10 +166,10 @@ export class AuthService {
       }
 
       const updateQuery =
-        'UPDATE users SET verified = $1 WHERE user_id = $2 RETURNING *';
+        'UPDATE users SET verified = $1 WHERE id = $2 RETURNING *';
       const verifyUser = await this.pg.query(updateQuery, [
         true,
-        result.rows[0].user_id,
+        result.rows[0].id,
       ]);
 
       if (!verifyUser.rows[0].verified) {

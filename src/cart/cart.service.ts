@@ -15,7 +15,7 @@ export class CartService {
   async getCartItems(user: any) {
     try {
       const cart = await this.pg.query(
-        'SELECT * FROM cart_items WHERE cart_id = $1',
+        'SELECT * FROM cart_items WHERE id = $1',
         [user.cart_id],
       );
 
@@ -51,7 +51,7 @@ export class CartService {
       }
 
       const cart = await this.pg.query(
-        'DELETE FROM cart_items WHERE cart_id = $1 AND product_id = $2',
+        'DELETE FROM cart_items WHERE id = $1 AND product_id = $2',
         [user.cart_id, productId],
       );
 
@@ -75,7 +75,7 @@ export class CartService {
 
   async clearCart(user: any) {
     try {
-      const cart = await this.pg.query('DELETE FROM users WHERE cart_id = $1', [
+      const cart = await this.pg.query('DELETE FROM users WHERE id = $1', [
         user.cart_id,
       ]);
 

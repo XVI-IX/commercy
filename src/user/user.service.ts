@@ -15,7 +15,7 @@ export class UserService {
         status: 'success',
         statusCode: 200,
         data: {
-          user_id: user.user_id,
+          user_id: user.id,
           username: user.username,
           first_name: user.first_name,
           last_name: user.last_name,
@@ -37,7 +37,7 @@ export class UserService {
   async updateProfile(id: string, dto: UserUpdateDto) {
     try {
       const query =
-        'UPDATE users SET first_name = $1, last_name = $2, avatar = $3, billing_address = $4, shipping_address = $5, phone_number = $6, date_of_birth = $7, modified_at = CURRENT_TIMESTAMP WHERE user_id = $8 RETURNING *';
+        'UPDATE users SET first_name = $1, last_name = $2, avatar = $3, billing_address = $4, shipping_address = $5, phone_number = $6, date_of_birth = $7, modified_at = CURRENT_TIMESTAMP WHERE id = $8 RETURNING *';
       const values = [
         dto.first_name,
         dto.last_name,
@@ -76,8 +76,7 @@ export class UserService {
 
   async changeRole(user_id: string, dto: UpdateRoleDto) {
     try {
-      const query =
-        'UPDATE users SET user_role = $1 WHERE user_id = $2 RETURNING *';
+      const query = 'UPDATE users SET user_role = $1 WHERE id = $2 RETURNING *';
       const values = [dto.role, user_id];
       const user = await this.pg.query(query, values);
 
@@ -109,7 +108,7 @@ export class UserService {
 
   async deleteUser(id: string) {
     try {
-      const query = 'DELETE FROM users WHERE user_id = $1';
+      const query = 'DELETE FROM users WHERE id = $1';
 
       const user = await this.pg.query(query, [id]);
 
