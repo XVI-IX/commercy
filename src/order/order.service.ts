@@ -1,36 +1,46 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PostgresService } from 'src/postgres/postgres.service';
 import { User } from 'src/user/entities/user.entity';
-import { CheckoutDto, UpdateOrderDto } from './dto';
+import { CheckoutDto } from './dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class OrderService {
   constructor(
-    private pg: PostgresService,
     private eventEmitter: EventEmitter2,
+    private prisma: PrismaService,
   ) {}
 
   async checkout(user: User, dto: CheckoutDto) {
     try {
-      const orderQuery =
-        'INSERT INTO orders (user_id, total_price, shippingAddress) VALUES ($1, $2, $3)';
-      const orderValues = [user.sub, dto.total_price, dto.shippingAddress];
+      const order = await this.prisma.orders.create({
+        data: {
+          user: {
+            connect: {
+              id: user.sub,
+            },
+          },
+          total_price: dto.total_price,
+          shippingAddress: dto.shippingAddress,
+          billingAddress: dto.billingAddress,
+        },
+      });
 
-      const orderResult = await this.pg.query(orderQuery, orderValues);
-
-      if (!orderResult) {
-        throw new InternalServerErrorException(
-          'Something went wrong with your order, please try again',
-        );
+      if (!order) {
+        throw new InternalServerErrorException('Orders could not be created');
       }
 
-      const orderItemsQuery =
-        'INSERT INTO orderItems (product_id, quantity, price) VALUES ($1, $2, $3)';
-      for (const item of dto.orderItems) {
-        const values = [item.product_id, item.quantity, item.price];
-        const query = await this.pg.query(orderItemsQuery, values);
-      }
+      const orderItemsData = dto.orderItems.map((orderItem) => ({
+        product_id: orderItem.product_id,
+        quantity: orderItem.quantity,
+        price: orderItem.price,
+        order: { connect: { id: order.id } },
+        order_id: order.id, // Connect to the created order
+      }));
+
+      const orderItems = await this.prisma.orderItems.createMany({
+        data: orderItemsData,
+      });
 
       const data = {};
 

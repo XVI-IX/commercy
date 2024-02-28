@@ -4,17 +4,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PostgresService } from 'src/postgres/postgres.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from 'src/user/entities/user.entity';
 import { CreateCartDto } from './dto';
 
 @Injectable()
 export class CartService {
-  constructor(
-    private pg: PostgresService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async addToCart(user: User, dto: CreateCartDto) {
     try {

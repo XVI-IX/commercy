@@ -4,16 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateProductDto, UpdateProductDto, ReviewDto } from './dto';
-import { PostgresService } from 'src/postgres/postgres.service';
 import { CreateCartDto } from 'src/cart/dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ProductsService {
-  constructor(
-    private pg: PostgresService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async addProduct(user_id: number, dto: CreateProductDto) {
     try {
@@ -52,25 +49,52 @@ export class ProductsService {
   async getAllProducts(queryBody: any) {
     const { category, min_price, max_price, page = 1, limit = 10 } = queryBody;
 
-    let query = 'SELECT * FROM products LIMIT $1 OFFSET $2';
-    const values = [limit, (page - 1) * limit];
+    // let query = 'SELECT * FROM products LIMIT $1 OFFSET $2';
+    // const values = [limit, (page - 1) * limit];
+
+    // if (category) {
+    //   query += ' WHERE category = $3';
+    //   values.push(category);
+    // }
+    // if (min_price) {
+    //   query += ' AND price >= $4';
+    //   values.push(min_price);
+    // }
+    // if (max_price) {
+    //   query += ' AND price <= $5';
+    //   values.push(max_price);
+    // }
+    const queryObject = {};
 
     if (category) {
-      query += ' WHERE category = $3';
-      values.push(category);
+      queryObject['category'] = category;
     }
-    if (min_price) {
-      query += ' AND price >= $4';
-      values.push(min_price);
+    if (min_price && max_price) {
+      queryObject['AND'] = [
+        { price: { gt: min_price } },
+        { price: { lt: max_price } },
+      ];
+    } else if (max_price && !min_price) {
+      queryObject['price'] = {
+        lt: max_price,
+      };
+    } else if (min_price && !max_price) {
+      queryBody['price'] = {
+        gt: min_price,
+      };
     }
-    if (max_price) {
-      query += ' AND price <= $5';
-      values.push(max_price);
-    }
-    try {
-      const products = await this.pg.query(query, values);
 
-      if (products.rows.length === 0) {
+    console.log(queryObject);
+
+    try {
+      // const products = await this.pg.query(query, values);
+      const products = await this.prisma.products.findMany({
+        where: queryObject,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      if (products.length === 0) {
         throw new NotFoundException('No products found.');
       }
 
@@ -78,7 +102,7 @@ export class ProductsService {
         message: 'Products retrieved successfully',
         status: 'success',
         statusCode: 200,
-        data: products.rows,
+        data: products,
         page,
       };
     } catch (error) {
@@ -87,12 +111,15 @@ export class ProductsService {
     }
   }
 
-  async getProductById(product_id: string) {
+  async getProductById(product_id: number) {
     try {
-      const query = 'SELECT * FROM products WHERE id = $1';
-      const product = await this.pg.query(query, [product_id]);
+      const product = await this.prisma.products.findUnique({
+        where: {
+          id: product_id,
+        },
+      });
 
-      if (product.rows.length === 0) {
+      if (!product) {
         throw new NotFoundException('Product not found.');
       }
 
@@ -100,7 +127,7 @@ export class ProductsService {
         message: 'Product retrieved.',
         status: 'success',
         statusCode: 200,
-        data: product.rows[0],
+        data: product,
       };
     } catch (error) {
       console.error(error);
@@ -110,17 +137,18 @@ export class ProductsService {
 
   async searchProducts(query: any) {
     const { search, page = 1, limit = 10 } = query;
-    console.log(search, page, limit);
     try {
-      const query =
-        'SELECT * FROM products WHERE product_name ILIKE $1 LIMIT $2 OFFSET $3';
-
-      const searchPattern = `%${search}%`; // adding % for pattern matching
-      const values = [searchPattern, limit, (page - 1) * limit];
-
-      const result = await this.pg.query(query, values);
-      console.log(result);
-      if (result.rows.length === 0) {
+      const products = await this.prisma.products.findMany({
+        where: {
+          product_name: {
+            contains: search.toLowerCase(),
+          },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      console.log(products);
+      if (!products) {
         throw new NotFoundException('No products found.');
       }
 
@@ -128,7 +156,7 @@ export class ProductsService {
         message: 'Product retrieved',
         status: 'success',
         statusCode: 200,
-        data: result.rows,
+        data: products,
         page,
       };
     } catch (error) {
@@ -139,19 +167,19 @@ export class ProductsService {
 
   async updateProduct(product_id: any, dto: UpdateProductDto) {
     try {
-      const query =
-        'UPDATE products SET product_name = $1, product_description = $2, price = $3, category = $4, quantity = $5, product_img = $6 WHERE id = $7 RETURNING *';
-      const values = [
-        dto.product_name,
-        dto.product_description,
-        dto.price,
-        dto.category,
-        dto.quantity,
-        dto.product_img,
-        product_id,
-      ];
-
-      const product = await this.pg.query(query, values);
+      const product = await this.prisma.products.update({
+        where: {
+          id: product_id,
+        },
+        data: dto,
+        select: {
+          product_name: true,
+          product_description: true,
+          category: true,
+          price: true,
+          quantity: true,
+        },
+      });
 
       if (!product) {
         throw new InternalServerErrorException('Product could not be updated');
@@ -161,13 +189,7 @@ export class ProductsService {
         message: 'Product has been updated.',
         status: 'success',
         statusCode: 200,
-        data: {
-          product_name: product.rows[0].product_name,
-          product_description: product.rows[0].product_description,
-          category: product.rows[0].category,
-          price: product.rows[0].price,
-          quantity: product.rows[0].quantity,
-        },
+        data: product,
       };
     } catch (error) {
       console.error(error);
@@ -175,12 +197,18 @@ export class ProductsService {
     }
   }
 
-  async deleteProduct(product_id: string) {
+  async deleteProduct(product_id: number) {
     try {
-      const query = 'DELETE FROM products WHERE id = $1';
-      const result = await this.pg.query(query, [product_id]);
+      // const query = 'DELETE FROM products WHERE id = $1';
+      // const result = await this.pg.query(query, [product_id]);
 
-      if (!result) {
+      const product = await this.prisma.products.delete({
+        where: {
+          id: product_id,
+        },
+      });
+
+      if (!product) {
         throw new InternalServerErrorException('Product could not be deleted.');
       }
 
@@ -196,7 +224,7 @@ export class ProductsService {
     }
   }
 
-  async addReview(user: any, product_id: string, dto: ReviewDto) {
+  async addReview(user: User, product_id: number, dto: ReviewDto) {
     try {
       const query =
         'INSERT INTO reviews (user_id, username, content, rating, product_id) VALUES ($1, $2, $3, $4, $5)';
@@ -208,8 +236,24 @@ export class ProductsService {
         product_id,
       ];
 
-      const result = await this.pg.query(query, values);
-      if (!result) {
+      const review = await this.prisma.reviews.create({
+        data: {
+          users: {
+            connect: {
+              id: user.sub,
+            },
+          },
+          username: user.username,
+          content: dto.content,
+          rating: dto.rating,
+          products: {
+            connect: {
+              id: product_id,
+            },
+          },
+        },
+      });
+      if (!review) {
         throw new InternalServerErrorException('Review could not be added.');
       }
 
@@ -217,7 +261,7 @@ export class ProductsService {
         message: 'Review added successfully',
         status: 'success',
         statusCode: 200,
-        data: result.rows[0],
+        data: review,
       };
     } catch (error) {
       console.error(error);
@@ -225,14 +269,15 @@ export class ProductsService {
     }
   }
 
-  async getReviews(product_id: string) {
+  async getReviews(product_id: number) {
     try {
-      const result = await this.pg.query(
-        'SELECT * FROM reviews WHERE product_id = $1',
-        [product_id],
-      );
+      const reviews = await this.prisma.reviews.findMany({
+        where: {
+          product_id: product_id,
+        },
+      });
 
-      if (result.rows.length === 0) {
+      if (!reviews) {
         throw new NotFoundException('No reviews found for this product.');
       }
 
@@ -240,7 +285,7 @@ export class ProductsService {
         message: 'Reviews retrieved successfully',
         status: 'success',
         statusCode: 200,
-        data: result.rows[0],
+        data: reviews,
       };
     } catch (error) {
       console.error(error);
@@ -248,14 +293,18 @@ export class ProductsService {
     }
   }
 
-  async getRating(product_id: string) {
+  async getRating(product_id: number) {
     try {
-      const query =
-        'SELECT AVG(rating), MIN(rating), MAX(rating) FROM reviews WHERE product_id = $1';
+      const rating = await this.prisma.reviews.aggregate({
+        where: {
+          id: product_id,
+        },
+        _avg: { rating: true },
+        _max: { rating: true },
+        _min: { rating: true },
+      });
 
-      const result = await this.pg.query(query, [product_id]);
-
-      if (!result) {
+      if (!rating) {
         throw new InternalServerErrorException('Rating could not be retrieved');
       }
 
@@ -263,7 +312,7 @@ export class ProductsService {
         message: 'Rating retrieved successfully',
         status: 'success',
         statusCode: 200,
-        rating: result.rows[0],
+        rating,
       };
     } catch (error) {
       console.error(error);
@@ -271,14 +320,18 @@ export class ProductsService {
     }
   }
 
-  async addToCart(user: any, productId: string, dto: CreateCartDto) {
+  async addToCart(user: User, productId: number, dto: CreateCartDto) {
     try {
-      let product = await this.pg.query(
-        'SELECT * FROM products where id = $1',
-        [productId],
-      );
+      // let product = await this.pg.query(
+      //   'SELECT * FROM products where id = $1',
+      //   [productId],
+      // );
 
-      product = product.rows[0];
+      const product = await this.prisma.products.findUnique({
+        where: {
+          id: productId,
+        },
+      });
 
       if (!product) {
         throw new InternalServerErrorException(
@@ -286,24 +339,24 @@ export class ProductsService {
         );
       }
 
-      console.log(product);
+      const cart = await this.prisma.cart_items.create({
+        data: {
+          cart: {
+            connect: {
+              id: user.cart_id,
+            },
+          },
+          product_id: productId,
+          product_name: product.product_name,
+          product_description: product.product_description,
+          product_img: product.product_img,
+          quantity: dto.quantity,
+          price: product.price * dto.quantity,
+          discount: dto.discount,
+        },
+      });
 
-      const query =
-        'INSERT INTO cart_items (cart_id, product_id, product_name, product_description, product_img, quantity, price, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
-      const values = [
-        user.cart_id,
-        productId,
-        product.product_name,
-        product.product_description,
-        product.product_img,
-        dto.quantity,
-        product.price * dto.quantity,
-        dto.discount,
-      ];
-
-      const result = await this.pg.query(query, values);
-
-      if (!result) {
+      if (!cart) {
         throw new InternalServerErrorException(
           'Product could not be added to cart',
         );
@@ -313,7 +366,7 @@ export class ProductsService {
         message: 'Product added to cart.',
         status: 'success',
         statusCode: 200,
-        data: result.rows,
+        data: cart,
       };
     } catch (error) {
       console.error(error);

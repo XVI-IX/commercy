@@ -8,6 +8,7 @@ import {
   Put,
   Delete,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto, ReviewDto, UpdateProductDto } from './dto';
@@ -32,7 +33,7 @@ export class ProductsController {
 
   @Get('/:productId')
   @HttpCode(200)
-  getProductById(@Param('productId') productId: string) {
+  getProductById(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.getProductById(productId);
   }
 
@@ -45,7 +46,7 @@ export class ProductsController {
   @Put('/:productId')
   @HttpCode(200)
   updateProduct(
-    @Param('productId') productId: string,
+    @Param('productId', ParseIntPipe) productId: number,
     @Body() dto: UpdateProductDto,
   ) {
     return this.productsService.updateProduct(productId, dto);
@@ -54,7 +55,7 @@ export class ProductsController {
   @Post('/:productId/reviews')
   @HttpCode(200)
   addReview(
-    @Param('productId') productId: string,
+    @Param('productId', ParseIntPipe) productId: number,
     @Body() dto: ReviewDto,
     @User() user: any,
   ) {
@@ -63,19 +64,19 @@ export class ProductsController {
 
   @Get('/:productId/reviews')
   @HttpCode(200)
-  getReviews(@Param('productId') productId: string) {
+  getReviews(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.getReviews(productId);
   }
 
   @Get('/:productId/rating')
   @HttpCode(200)
-  getRating(@Param('productId') productId: string) {
+  getRating(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.getRating(productId);
   }
 
   @Delete('/:productId')
   @HttpCode(200)
-  deleteProduct(@Param('productId') productId: string) {
+  deleteProduct(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.deleteProduct(productId);
   }
 
@@ -83,7 +84,7 @@ export class ProductsController {
   @HttpCode(200)
   addToCart(
     @User() user: any,
-    @Param('productId') productId: string,
+    @Param('productId', ParseIntPipe) productId: number,
     @Body() dto: CreateCartDto,
   ) {
     return this.productsService.addToCart(user, productId, dto);
