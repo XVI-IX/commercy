@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   Post,
 } from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
@@ -19,7 +20,7 @@ export class WishlistController {
   @HttpCode(200)
   addToWishlist(
     @User() user: any,
-    @Param('productId') product_id: string,
+    @Param('productId', ParseIntPipe) product_id: number,
     @Body() dto: WishListDto,
   ) {
     return this.wishlistService.addToWishlist(user, product_id, dto);
@@ -35,7 +36,7 @@ export class WishlistController {
   @HttpCode(200)
   deleteFromWishlist(
     @User() user: any,
-    @Param('productId') product_id: string,
+    @Param('productId', ParseIntPipe) product_id: number,
   ) {
     return this.wishlistService.deleteFromWishlist(user, product_id);
   }
