@@ -19,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -39,6 +40,10 @@ import { PrismaModule } from './prisma/prisma.module';
     DashboardModule,
     CheckoutModule,
     PrismaModule,
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 10,
+    }),
   ],
   controllers: [AppController],
   providers: [

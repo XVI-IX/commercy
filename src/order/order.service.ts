@@ -12,6 +12,10 @@ export class OrderService {
   ) {}
 
   async checkout(user: User, dto: CheckoutDto) {
+    let total_price = 0;
+    for (const item of dto.orderItems) {
+      total_price += item.price * item.quantity;
+    }
     try {
       const order = await this.prisma.orders.create({
         data: {
@@ -20,7 +24,7 @@ export class OrderService {
               id: user.sub,
             },
           },
-          total_price: dto.total_price,
+          total_price: total_price,
           shippingAddress: dto.shippingAddress,
           billingAddress: dto.billingAddress,
         },
@@ -34,13 +38,21 @@ export class OrderService {
         product_id: orderItem.product_id,
         quantity: orderItem.quantity,
         price: orderItem.price,
-        order: { connect: { id: order.id } },
+        // order: { connect: { id: order.id } },
         order_id: order.id, // Connect to the created order
       }));
+
+      console.log(orderItemsData);
 
       const orderItems = await this.prisma.orderItems.createMany({
         data: orderItemsData,
       });
+
+      if (!orderItems) {
+        throw new InternalServerErrorException(
+          'Order could not be placed please try again',
+        );
+      }
 
       const data = {};
 
@@ -50,6 +62,7 @@ export class OrderService {
         message: 'Order placed',
         status: 'success',
         statusCode: 200,
+        data: order,
       };
     } catch (error) {
       console.error('Order could not be placed');
@@ -59,12 +72,13 @@ export class OrderService {
 
   async getOrders(user: User) {
     try {
-      const query = 'SELECT * FROM orders WHERE user_id = $1';
-      const values = [user.sub];
+      const orders = await this.prisma.orders.findMany({
+        where: {
+          user_id: user.sub,
+        },
+      });
 
-      const result = await this.pg.query(query, values);
-
-      if (!result) {
+      if (!orders) {
         throw new InternalServerErrorException('Orders could not be retrieved');
       }
 
@@ -72,7 +86,7 @@ export class OrderService {
         message: 'Orders retrieved',
         status: 'success',
         statusCode: 200,
-        data: result.rows,
+        data: orders,
       };
     } catch (error) {
       console.error(error);
@@ -82,12 +96,14 @@ export class OrderService {
 
   async getOrderById(user: User, orderId: number) {
     try {
-      const query = 'SELECT * FROM orders WHERE user_id = $1 AND order_id = $2';
-      const values = [user.sub, orderId];
+      const order = await this.prisma.orders.findUnique({
+        where: {
+          user_id: user.sub,
+          id: orderId,
+        },
+      });
 
-      const result = await this.pg.query(query, values);
-
-      if (!result) {
+      if (!order) {
         throw new InternalServerErrorException('Order could not be retrieved');
       }
 
@@ -95,7 +111,7 @@ export class OrderService {
         message: 'Order retrieved',
         status: 'success',
         statusCode: 200,
-        data: result.rows,
+        data: order,
       };
     } catch (error) {
       console.error(error);

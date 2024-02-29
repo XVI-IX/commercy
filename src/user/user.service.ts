@@ -4,15 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UserUpdateDto, UpdateRoleDto } from './dto';
-import { PostgresService } from 'src/postgres/postgres.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private pg: PostgresService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getProfile(user_email: string) {
     try {

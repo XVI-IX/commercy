@@ -226,16 +226,6 @@ export class ProductsService {
 
   async addReview(user: User, product_id: number, dto: ReviewDto) {
     try {
-      const query =
-        'INSERT INTO reviews (user_id, username, content, rating, product_id) VALUES ($1, $2, $3, $4, $5)';
-      const values = [
-        user.sub,
-        user.username,
-        dto.content,
-        dto.rating,
-        product_id,
-      ];
-
       const review = await this.prisma.reviews.create({
         data: {
           users: {

@@ -7,12 +7,14 @@ import {
   HttpCode,
   Put,
   ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserUpdateDto } from './dto/update-user.dto';
 import { User, Roles } from '../decorator';
 import { Role } from '../enums';
 import { UpdateRoleDto } from './dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('user')
 export class UserController {
@@ -21,6 +23,7 @@ export class UserController {
   @Get('/profile')
   @Roles(Role.Admin, Role.User)
   @HttpCode(200)
+  @UseInterceptors(CacheInterceptor)
   getProfile(@User() user: any) {
     return this.userService.getProfile(user.email);
   }

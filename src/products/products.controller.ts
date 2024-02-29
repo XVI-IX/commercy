@@ -9,11 +9,13 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto, ReviewDto, UpdateProductDto } from './dto';
 import { User } from 'src/decorator';
 import { CreateCartDto } from 'src/cart/dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('products')
 export class ProductsController {
@@ -27,6 +29,7 @@ export class ProductsController {
 
   @Get()
   @HttpCode(200)
+  @UseInterceptors(CacheInterceptor)
   getAllProducts(@Query() query: any) {
     return this.productsService.getAllProducts(query);
   }
@@ -45,6 +48,7 @@ export class ProductsController {
 
   @Put('/:productId')
   @HttpCode(200)
+  @UseInterceptors(CacheInterceptor)
   updateProduct(
     @Param('productId', ParseIntPipe) productId: number,
     @Body() dto: UpdateProductDto,
@@ -64,12 +68,14 @@ export class ProductsController {
 
   @Get('/:productId/reviews')
   @HttpCode(200)
+  @UseInterceptors(CacheInterceptor)
   getReviews(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.getReviews(productId);
   }
 
   @Get('/:productId/rating')
   @HttpCode(200)
+  @UseInterceptors(CacheInterceptor)
   getRating(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.getRating(productId);
   }

@@ -3,17 +3,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PostgresService } from 'src/postgres/postgres.service';
 import { WishListDto } from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class WishlistService {
-  constructor(
-    private pg: PostgresService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async addToWishlist(user: User, product_id: number, dto: WishListDto) {
     try {

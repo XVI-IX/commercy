@@ -7,10 +7,12 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseInterceptors,
 } from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
 import { WishListDto } from './dto';
 import { User } from 'src/decorator';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('wishlist')
 export class WishlistController {
@@ -28,6 +30,7 @@ export class WishlistController {
 
   @Get()
   @HttpCode(200)
+  @UseInterceptors(CacheInterceptor)
   getWishlist(@User() user: any) {
     return this.wishlistService.getWishlist(user);
   }
