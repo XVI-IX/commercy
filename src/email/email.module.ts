@@ -3,6 +3,7 @@ import { EmailService } from './email.service';
 import { EmailController } from './email.controller';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   controllers: [EmailController],
@@ -26,6 +27,9 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
         adapter: new EjsAdapter(),
       },
     }),
+    BullModule.registerQueue({
+      name: 'email'
+    });
   ],
 })
 export class EmailModule {}

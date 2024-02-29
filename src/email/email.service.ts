@@ -1,13 +1,14 @@
 import { MailerService } from '@nestjs-modules/mailer';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Queue } from 'bull';
 
 @Injectable()
 export class EmailService {
   constructor(
-    private readonly config: ConfigService,
     private readonly mailService: MailerService,
+    @InjectQueue('email') private emailQueue: Queue,
   ) {}
 
   async sendVerificationEmail(data: any) {
@@ -42,12 +43,6 @@ export class EmailService {
       console.error(error);
     }
   }
-
-  // TODO: Create email to send when log in event occurs
-  // async sendLoggedInEmail(data: any) {
-  //   try {
-  //   } catch (error) {}
-  // }
 
   async sendForgotPassEmail(data: any) {
     try {
@@ -105,27 +100,42 @@ export class EmailService {
   }
 
   @OnEvent('welcome-user')
-  handleUserWelcome(data: any) {
-    this.sendWelcomeEmail(data);
+  async handleUserWelcome(data: any) {
+    const job = await this.emailQueue.add('welcome-user', data);
+
+    return {
+      message: "Welcome email sent",
+      job_id: job.id,
+    }
   }
 
-  // @OnEvent('logged-in')
-  // handleUserLogin(data: any) {
-  //   this.sendLoggedInEmail(data);
-  // }
-
   @OnEvent('forgot-password')
-  handleForgotPassword(data: any) {
-    this.sendForgotPassEmail(data);
+  async handleForgotPassword(data: any) {
+    const job = await this.emailQueue.add('forgot-password', data);
+
+    return {
+      message: "forgot passwoed sent",
+      job_id: job.id,
+    }
   }
 
   @OnEvent('reset-password')
-  handleResetPassword(data: any) {
-    this.resetPasswordEmail(data);
+  async handleResetPassword(data: any) {
+    const job = await this.emailQueue.add('reset-password', data);
+
+    return {
+      message: "reset password email sent",
+      job_id: job.id,
+    }
   }
 
   @OnEvent('resend-token')
-  handleResendToken(data: any) {
-    this.resendTokenEmail(data);
+  async handleResendToken(data: any) {
+    const job = await this.emailQueue.add('resend-token', data);
+
+    return {
+      message: "resend token email sent",
+      job_id: job.id,
+    }
   }
 }
