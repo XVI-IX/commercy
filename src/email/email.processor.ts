@@ -2,6 +2,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MailerService } from '@nestjs-modules/mailer';
+import { EmailData } from './entities/email.entity';
 
 @Processor('email')
 export class EmailProcessor {

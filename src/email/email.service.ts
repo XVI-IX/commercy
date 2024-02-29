@@ -3,6 +3,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Queue } from 'bull';
+import { EmailData } from './entities/email.entity';
 
 @Injectable()
 export class EmailService {
@@ -12,12 +13,17 @@ export class EmailService {
   ) {}
 
   @OnEvent('verify-user')
-  handleUserVerification(data: any) {
-    this.sendVerificationEmail(data);
+  async handleUserVerification(data: EmailData) {
+    const job = await this.emailQueue.add('verify-user', data);
+
+    return {
+      message: 'verify email mail sent',
+      job_id: job.id,
+    };
   }
 
   @OnEvent('welcome-user')
-  async handleUserWelcome(data: any) {
+  async handleUserWelcome(data: EmailData) {
     const job = await this.emailQueue.add('welcome-user', data);
 
     return {
@@ -27,7 +33,7 @@ export class EmailService {
   }
 
   @OnEvent('forgot-password')
-  async handleForgotPassword(data: any) {
+  async handleForgotPassword(data: EmailData) {
     const job = await this.emailQueue.add('forgot-password', data);
 
     return {
@@ -37,7 +43,7 @@ export class EmailService {
   }
 
   @OnEvent('reset-password')
-  async handleResetPassword(data: any) {
+  async handleResetPassword(data: EmailData) {
     const job = await this.emailQueue.add('reset-password', data);
 
     return {
@@ -47,7 +53,7 @@ export class EmailService {
   }
 
   @OnEvent('resend-token')
-  async handleResendToken(data: any) {
+  async handleResendToken(data: EmailData) {
     const job = await this.emailQueue.add('resend-token', data);
 
     return {

@@ -28,8 +28,8 @@ import { BullModule } from '@nestjs/bull';
       },
     }),
     BullModule.registerQueue({
-      name: 'email'
-    });
+      name: 'email',
+    }),
   ],
 })
 export class EmailModule {}
