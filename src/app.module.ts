@@ -17,7 +17,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { CheckoutModule } from './checkout/checkout.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
 
@@ -38,7 +37,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     WishlistModule,
     NotificationsModule,
     DashboardModule,
-    CheckoutModule,
     PrismaModule,
     CacheModule.register({
       isGlobal: true,
