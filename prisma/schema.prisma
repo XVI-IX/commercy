@@ -25,6 +25,7 @@ model orders {
   createdAt       DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime      @updatedAt
   orderItems      orderItems[]
+  payments        payments[]
 }
 
 model orderItems {
@@ -71,10 +72,11 @@ model users {
   passwordhash      String      @unique @db.VarChar(255)
   verificationtoken String?     @unique @db.VarChar(255)
   cart_id           Int?
-  order_history            orders[]
+  order_history     orders[]
   products          products[]
   reviews           reviews[]
-  wishlist         wishlists[]
+  wishlist          wishlists[]
+  payments          payments[]
 
   @@index([verificationtoken], map: "idx_verificationtoken")
 }
@@ -121,6 +123,23 @@ model cart_items {
   added_at            DateTime? @default(now()) @db.Timestamp(6)
 
   @@unique([cart_id, product_id], map: "unique_constraint")
+}
+
+model payments {
+  id       Int           @id @default(autoincrement())
+  order    orders        @relation(fields: [order_id], references: [id])
+  order_id Int
+  user     users         @relation(fields: [user_id], references: [id])
+  user_id  Int
+  refCode  String
+  status   paymentStatus @default(pending)
+}
+
+enum paymentStatus {
+  pending
+  success
+  cancelled
+  failed
 }
 
 enum productStatus {
